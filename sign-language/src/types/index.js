@@ -15,7 +15,9 @@ export const SIGN_TRANSLATIONS = {
     'Love': 'Love',
     'Family': 'Family',
     'Work': 'Work',
-    'Home': 'Home'
+    'Home': 'Home',
+    'How are You?': 'How are You?',
+    'Goodbye': 'Goodbye',
   },
   spanish: {
     'Hello': 'Hola',
@@ -32,7 +34,9 @@ export const SIGN_TRANSLATIONS = {
     'Love': 'Amor',
     'Family': 'Familia',
     'Work': 'Trabajo',
-    'Home': 'Casa'
+    'Home': 'Casa',
+    'How are You?': '¿Cómo estás?',
+    'Goodbye': 'Adiós',
   },
   khmer: {
     'Hello': 'សួស្តី',
@@ -49,7 +53,9 @@ export const SIGN_TRANSLATIONS = {
     'Love': 'ស្រលាញ់',
     'Family': 'គ្រួសារ',
     'Work': 'ការងារ',
-    'Home': 'ផ្ទះ'
+    'Home': 'ផ្ទះ',
+    'How are You?': 'សុខសប្បាយរបស់អ្នកដែរឬទេ?',
+    'Goodbye': 'លាហើយ',
   }
 };
 
