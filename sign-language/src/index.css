@@ -4,12 +4,12 @@
 
 /* CSS Variables for theming */
 :root {
-  --primary-color: #3B82F6;
-  --secondary-color: #14B8A6;
-  --accent-color: #F97316;
-  --success-color: #10B981;
+  --primary-color: #154D71;
+  --secondary-color: #1C6EA4;
+  --accent-color: #33A1E0;
+  --success-color: #154D71;
   --error-color: #EF4444;
-  --warning-color: #F59E0B;
+  --warning-color: #F5BABB;
 
   --bg-primary: #FFFFFF;
   --bg-secondary: #F8FAFC;
@@ -166,7 +166,7 @@ body {
 }
 
 .start-btn:hover {
-  background: #059669;
+  background: #33A1E0;
 }
 
 .stop-btn {
