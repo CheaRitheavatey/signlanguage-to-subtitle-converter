@@ -3,7 +3,7 @@ import { Play, Square, Camera, Settings as SettingsIcon, Sun, Moon } from 'lucid
 import { VideoPlayer } from './components/VideoPlayer';
 import { SubtitleOverlay } from './components/SubtitleOverlay';
 import { DetectionPanel } from './components/DetectionPanel';
-// import { SettingsPanel } from './components/SettingsPanel';
+// import { SettingPanel } from './components/SettingPanel';
 import { SubtitleHistory } from './components/SubtitleHistory';
 import { useCamera } from './hooks/useCamera';
 import { useSignDetection } from './hooks/useSignDetection';
@@ -149,7 +149,7 @@ function App() {
           {/* Sidebar */}
           <div className="sidebar">
             {showSettings && (
-              <SettingsPanel
+              <SettingPanel
                 settings={settings}
                 onSettingsChange={setSettings}
               />
