@@ -1,7 +1,7 @@
 import React from 'react';
 import { Settings, Globe, Type, Monitor, Eye, Sliders } from 'lucide-react';
 
-export const SettingsPanel = ({
+export const SettingPanel = ({
   settings,
   onSettingsChange,
 }) => {

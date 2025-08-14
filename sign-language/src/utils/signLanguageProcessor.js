@@ -12,23 +12,13 @@ const LANDMARK_INDICES = {
   PINKY_PIP: 18,
 };
 
-// Detection thresholds
-const DETECTION_THRESHOLDS = {
-  FINGER_EXTENDED: 0.1,
-  LETTER_O_MAX_DIST: 0.03,
-  LETTER_V_MIN_DIST: 0.05,
-  WAVE_MIN_MOVEMENT: 0.2,
-  ILY_MIN_DIST: 0.15
-};
-
 export class SignLanguageProcessor {
   constructor() {
     this.gestureHistory = [];
-    this.prevPositions = [];
     this.historySize = 5;
   }
 
-  // Calculate Euclidean distance between two landmarks
+  // Calculate distance between two landmarks
   calculateDistance(point1, point2) {
     const dx = point1[0] - point2[0];
     const dy = point1[1] - point2[1];
@@ -41,13 +31,14 @@ export class SignLanguageProcessor {
     const pip = landmarks[pipIndex];
     const wrist = landmarks[LANDMARK_INDICES.WRIST];
     
+    // Calculate distances
     const tipToWrist = this.calculateDistance(tip, wrist);
     const pipToWrist = this.calculateDistance(pip, wrist);
     
-    return tipToWrist > pipToWrist + DETECTION_THRESHOLDS.FINGER_EXTENDED;
+    return tipToWrist > pipToWrist;
   }
 
-  // Main gesture detection function
+  // Detect basic ASL letters and common gestures
   detectGesture(landmarks) {
     const extendedFingers = {
       thumb: this.isThumbExtended(landmarks),
@@ -57,52 +48,94 @@ export class SignLanguageProcessor {
       pinky: this.isFingerExtended(landmarks, LANDMARK_INDICES.PINKY_TIP, LANDMARK_INDICES.PINKY_PIP),
     };
 
-    // ASL Letters
-    if (this.isLetterA(extendedFingers)) return { name: 'A', confidence: 0.85, landmarks };
-    if (this.isLetterB(extendedFingers)) return { name: 'B', confidence: 0.88, landmarks };
-    if (this.isLetterC(landmarks, extendedFingers)) return { name: 'C', confidence: 0.82, landmarks };
-    if (this.isLetterD(extendedFingers)) return { name: 'D', confidence: 0.86, landmarks };
-    if (this.isLetterE(extendedFingers)) return { name: 'E', confidence: 0.84, landmarks };
-    if (this.isLetterF(landmarks, extendedFingers)) return { name: 'F', confidence: 0.87, landmarks };
-    if (this.isLetterG(extendedFingers)) return { name: 'G', confidence: 0.83, landmarks };
-    if (this.isLetterH(extendedFingers)) return { name: 'H', confidence: 0.85, landmarks };
-    if (this.isLetterI(extendedFingers)) return { name: 'I', confidence: 0.89, landmarks };
-    if (this.isLetterL(extendedFingers)) return { name: 'L', confidence: 0.87, landmarks };
-    if (this.isLetterO(landmarks, extendedFingers)) return { name: 'O', confidence: 0.85, landmarks };
-    if (this.isLetterU(extendedFingers)) return { name: 'U', confidence: 0.86, landmarks };
-    if (this.isLetterV(landmarks, extendedFingers)) return { name: 'V', confidence: 0.88, landmarks };
-    if (this.isLetterW(extendedFingers)) return { name: 'W', confidence: 0.84, landmarks };
-    if (this.isLetterY(extendedFingers)) return { name: 'Y', confidence: 0.87, landmarks };
+    // ASL Letter Recognition
+    if (this.isLetterA(landmarks, extendedFingers)) {
+      return { name: 'A', confidence: 0.85, landmarks };
+    }
+    if (this.isLetterB(landmarks, extendedFingers)) {
+      return { name: 'B', confidence: 0.88, landmarks };
+    }
+    if (this.isLetterC(landmarks, extendedFingers)) {
+      return { name: 'C', confidence: 0.82, landmarks };
+    }
+    if (this.isLetterD(landmarks, extendedFingers)) {
+      return { name: 'D', confidence: 0.86, landmarks };
+    }
+    if (this.isLetterE(landmarks, extendedFingers)) {
+      return { name: 'E', confidence: 0.84, landmarks };
+    }
+    if (this.isLetterF(landmarks, extendedFingers)) {
+      return { name: 'F', confidence: 0.87, landmarks };
+    }
+    if (this.isLetterG(landmarks, extendedFingers)) {
+      return { name: 'G', confidence: 0.83, landmarks };
+    }
+    if (this.isLetterH(landmarks, extendedFingers)) {
+      return { name: 'H', confidence: 0.85, landmarks };
+    }
+    if (this.isLetterI(landmarks, extendedFingers)) {
+      return { name: 'I', confidence: 0.89, landmarks };
+    }
+    if (this.isLetterL(landmarks, extendedFingers)) {
+      return { name: 'L', confidence: 0.87, landmarks };
+    }
+    if (this.isLetterO(landmarks, extendedFingers)) {
+      return { name: 'O', confidence: 0.85, landmarks };
+    }
+    if (this.isLetterU(landmarks, extendedFingers)) {
+      return { name: 'U', confidence: 0.86, landmarks };
+    }
+    if (this.isLetterV(landmarks, extendedFingers)) {
+      return { name: 'V', confidence: 0.88, landmarks };
+    }
+    if (this.isLetterW(landmarks, extendedFingers)) {
+      return { name: 'W', confidence: 0.84, landmarks };
+    }
+    if (this.isLetterY(landmarks, extendedFingers)) {
+      return { name: 'Y', confidence: 0.87, landmarks };
+    }
 
-    // Words and Phrases
-    if (this.isHello(extendedFingers)) return { name: 'Hello', confidence: 0.90, landmarks };
-    if (this.isThankYou(landmarks, extendedFingers)) return { name: 'Thank you', confidence: 0.88, landmarks };
-    if (this.isPlease(extendedFingers)) return { name: 'Please', confidence: 0.85, landmarks };
-    if (this.isYes(extendedFingers)) return { name: 'Yes', confidence: 0.87, landmarks };
-    if (this.isNo(landmarks, extendedFingers)) return { name: 'No', confidence: 0.86, landmarks };
-    if (this.isILoveYou(landmarks, extendedFingers)) return { name: 'I Love You', confidence: 0.92, landmarks };
-    if (this.isHowAreYou(landmarks)) return { name: 'How are you?', confidence: 0.89, landmarks };
+    // Common words and phrases
+    if (this.isHello(landmarks, extendedFingers)) {
+      return { name: 'Hello', confidence: 0.90, landmarks };
+    }
+    if (this.isThankYou(landmarks, extendedFingers)) {
+      return { name: 'Thank you', confidence: 0.88, landmarks };
+    }
+    if (this.isPlease(landmarks, extendedFingers)) {
+      return { name: 'Please', confidence: 0.85, landmarks };
+    }
+    if (this.isYes(landmarks, extendedFingers)) {
+      return { name: 'Yes', confidence: 0.87, landmarks };
+    }
+    if (this.isNo(landmarks, extendedFingers)) {
+      return { name: 'No', confidence: 0.86, landmarks };
+    }
+    if (this.isLetterA(landmarks, extendedFingers)) {
+      return { name: 'No', confidence: 0.86, landmarks };
+    }
+   
 
     return { name: 'Unknown', confidence: 0.3, landmarks };
   }
 
   isThumbExtended(landmarks) {
     const thumbTip = landmarks[LANDMARK_INDICES.THUMB_TIP];
-    const thumbIP = landmarks[3];
+    const thumbIP = landmarks[3]; // Thumb IP joint
     const wrist = landmarks[LANDMARK_INDICES.WRIST];
     
     const tipToWrist = this.calculateDistance(thumbTip, wrist);
     const ipToWrist = this.calculateDistance(thumbIP, wrist);
     
-    return tipToWrist > ipToWrist + DETECTION_THRESHOLDS.FINGER_EXTENDED;
+    return tipToWrist > ipToWrist;
   }
 
   // ASL Letter Detection Methods
-  isLetterA(fingers) {
+  isLetterA(landmarks, fingers) {
     return !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky && fingers.thumb;
   }
 
-  isLetterB(fingers) {
+  isLetterB(landmarks, fingers) {
     return fingers.index && fingers.middle && fingers.ring && fingers.pinky && !fingers.thumb;
   }
 
@@ -110,14 +143,14 @@ export class SignLanguageProcessor {
     const thumbTip = landmarks[LANDMARK_INDICES.THUMB_TIP];
     const indexTip = landmarks[LANDMARK_INDICES.INDEX_TIP];
     const distance = this.calculateDistance(thumbTip, indexTip);
-    return distance > 0.05 && distance < 0.15;
+    return distance > 0.05 && distance < 0.15; // Curved hand shape
   }
 
-  isLetterD(fingers) {
+  isLetterD(landmarks, fingers) {
     return fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky && fingers.thumb;
   }
 
-  isLetterE(fingers) {
+  isLetterE(landmarks, fingers) {
     return !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky && !fingers.thumb;
   }
 
@@ -128,19 +161,19 @@ export class SignLanguageProcessor {
     return distance < 0.05 && fingers.middle && fingers.ring && fingers.pinky;
   }
 
-  isLetterG(fingers) {
+  isLetterG(landmarks, fingers) {
     return fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky && !fingers.thumb;
   }
 
-  isLetterH(fingers) {
+  isLetterH(landmarks, fingers) {
     return fingers.index && fingers.middle && !fingers.ring && !fingers.pinky && !fingers.thumb;
   }
 
-  isLetterI(fingers) {
+  isLetterI(landmarks, fingers) {
     return !fingers.index && !fingers.middle && !fingers.ring && fingers.pinky && !fingers.thumb;
   }
 
-  isLetterL(fingers) {
+  isLetterL(landmarks, fingers) {
     return fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky && fingers.thumb;
   }
 
@@ -148,10 +181,10 @@ export class SignLanguageProcessor {
     const thumbTip = landmarks[LANDMARK_INDICES.THUMB_TIP];
     const indexTip = landmarks[LANDMARK_INDICES.INDEX_TIP];
     const distance = this.calculateDistance(thumbTip, indexTip);
-    return distance < DETECTION_THRESHOLDS.LETTER_O_MAX_DIST;
+    return distance < 0.03; // Fingers touching in O shape
   }
 
-  isLetterU(fingers) {
+  isLetterU(landmarks, fingers) {
     return fingers.index && fingers.middle && !fingers.ring && !fingers.pinky && !fingers.thumb;
   }
 
@@ -159,76 +192,54 @@ export class SignLanguageProcessor {
     const indexTip = landmarks[LANDMARK_INDICES.INDEX_TIP];
     const middleTip = landmarks[LANDMARK_INDICES.MIDDLE_TIP];
     const distance = this.calculateDistance(indexTip, middleTip);
-    return fingers.index && fingers.middle && !fingers.ring && !fingers.pinky && 
-           distance > DETECTION_THRESHOLDS.LETTER_V_MIN_DIST;
+    return fingers.index && fingers.middle && !fingers.ring && !fingers.pinky && distance > 0.05;
   }
 
-  isLetterW(fingers) {
+  isLetterW(landmarks, fingers) {
     return fingers.index && fingers.middle && fingers.ring && !fingers.pinky && !fingers.thumb;
   }
 
-  isLetterY(fingers) {
+  isLetterY(landmarks, fingers) {
     return !fingers.index && !fingers.middle && !fingers.ring && fingers.pinky && fingers.thumb;
   }
 
   // Common word detection methods
-  isHello(fingers) {
+  isHello(landmarks, fingers) {
+    // Hello is typically a waving motion with open hand
     return fingers.index && fingers.middle && fingers.ring && fingers.pinky && fingers.thumb;
   }
 
   isThankYou(landmarks, fingers) {
+    // Thank you involves touching chin and moving hand forward
     const indexTip = landmarks[LANDMARK_INDICES.INDEX_TIP];
     return indexTip[1] < 0.3 && fingers.index && fingers.middle && fingers.ring && fingers.pinky;
   }
 
-  isPlease(fingers) {
+  isPlease(landmarks, fingers) {
+    // Please involves circular motion on chest
     return fingers.index && fingers.middle && fingers.ring && fingers.pinky && fingers.thumb;
   }
 
-  isYes(fingers) {
+  isYes(landmarks, fingers) {
+    // Yes is a nodding fist motion
     return !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky && fingers.thumb;
   }
 
   isNo(landmarks, fingers) {
+    // No involves index and middle finger together moving side to side
     const indexTip = landmarks[LANDMARK_INDICES.INDEX_TIP];
     const middleTip = landmarks[LANDMARK_INDICES.MIDDLE_TIP];
     const distance = this.calculateDistance(indexTip, middleTip);
-    return fingers.index && fingers.middle && distance < DETECTION_THRESHOLDS.LETTER_O_MAX_DIST;
+    return fingers.index && fingers.middle && distance < 0.03;
   }
 
-  isILoveYou(landmarks, fingers) {
-    const pinkyThumbDist = this.calculateDistance(
-      landmarks[LANDMARK_INDICES.PINKY_TIP],
-      landmarks[LANDMARK_INDICES.THUMB_TIP]
-    );
-    return fingers.pinky &&
-           fingers.index && 
-           !fingers.middle && 
-           !fingers.ring &&
-           fingers.thumb &&
-           pinkyThumbDist > DETECTION_THRESHOLDS.ILY_MIN_DIST;
-  }
-
-  isHowAreYou(landmarks) {
-    const indexTip = landmarks[LANDMARK_INDICES.INDEX_TIP];
-    this.prevPositions.push(indexTip);
-    
-    if (this.prevPositions.length > 10) {
-      this.prevPositions.shift();
-      
-      const xMovements = this.prevPositions.map(p => p[0]);
-      const xRange = Math.max(...xMovements) - Math.min(...xMovements);
-      return xRange > DETECTION_THRESHOLDS.WAVE_MIN_MOVEMENT;
-    }
-    return false;
-  }
-
-  // Process MediaPipe results with smoothing
+  // Process MediaPipe results
   processResults(results) {
     if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
       return null;
     }
 
+    // Use the first detected hand
     const landmarks = results.multiHandLandmarks[0].map(landmark => [
       landmark.x,
       landmark.y,
@@ -243,15 +254,16 @@ export class SignLanguageProcessor {
       this.gestureHistory.shift();
     }
 
+    // Return smoothed result
     return this.getSmoothGesture();
   }
 
-  // Get the most consistent recent gesture
   getSmoothGesture() {
     if (this.gestureHistory.length === 0) {
       return { name: 'Unknown', confidence: 0, landmarks: [] };
     }
 
+    // Find most common gesture in recent history
     const gestureCounts = {};
     
     this.gestureHistory.forEach(gesture => {
@@ -275,17 +287,17 @@ export class SignLanguageProcessor {
       }
     });
 
-    const avgConfidence = gestureCounts[bestGesture]?.confidence / gestureCounts[bestGesture]?.count || 0;
+    const avgConfidence = gestureCounts[bestGesture].confidence / gestureCounts[bestGesture].count;
     
     return {
       name: bestGesture,
       confidence: Math.min(avgConfidence, 0.95),
-      landmarks: this.gestureHistory[this.gestureHistory.length - 1]?.landmarks || []
+      landmarks: this.gestureHistory[this.gestureHistory.length - 1].landmarks
     };
   }
 
+  // Clear gesture history
   clearHistory() {
     this.gestureHistory = [];
-    this.prevPositions = [];
   }
 }

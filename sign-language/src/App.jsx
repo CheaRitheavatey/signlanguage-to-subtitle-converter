@@ -3,12 +3,12 @@ import { Play, Square, Camera, Settings as SettingsIcon, Sun, Moon } from 'lucid
 import { VideoPlayer } from './components/VideoPlayer';
 import { SubtitleOverlay } from './components/SubtitleOverlay';
 import { DetectionPanel } from './components/DetectionPanel';
-// import { SettingPanel } from './components/SettingPanel';
 import { SubtitleHistory } from './components/SubtitleHistory';
 import { useCamera } from './hooks/useCamera';
 import { useSignDetection } from './hooks/useSignDetection';
 import { useSubtitles } from './hooks/useSubtitles';
 import { DEFAULT_SETTINGS } from './types';
+import { SettingPanel } from './components/SettingPanel';
 
 function App() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
