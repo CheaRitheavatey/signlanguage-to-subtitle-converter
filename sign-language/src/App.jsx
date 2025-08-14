@@ -3,7 +3,9 @@ import { Play, Square, Camera, Settings as SettingsIcon, Sun, Moon } from 'lucid
 import { VideoPlayer } from './components/VideoPlayer';
 import { SubtitleOverlay } from './components/SubtitleOverlay';
 import { DetectionPanel } from './components/DetectionPanel';
+// import { SettingsPanel } from './components/SettingsPanel';
 import { SubtitleHistory } from './components/SubtitleHistory';
+import { WLASLSettings } from './components/WLASLSettings';
 import { useCamera } from './hooks/useCamera';
 import { useSignDetection } from './hooks/useSignDetection';
 import { useSubtitles } from './hooks/useSubtitles';
@@ -22,11 +24,18 @@ function App() {
     detectedSigns, 
     currentGesture,
     isDetecting, 
+    isProcessing,
     canvasRef,
+    detectionMode,
+    setDetectionMode,
+    apiKey,
+    updateApiKey,
     startDetection, 
     stopDetection, 
     clearDetections, 
-    translateSign 
+    translateSign,
+    processSignsToSentence,
+    getVocabularyInfo
   } = useSignDetection(settings);
   const { subtitles, currentSubtitle, processSignsToText, exportSRT, clearSubtitles } = useSubtitles(settings);
 
@@ -155,11 +164,23 @@ function App() {
               />
             )}
             
+            {detectionMode === 'wlasl' && (
+              <WLASLSettings
+                apiKey={apiKey}
+                onUpdateApiKey={updateApiKey}
+                isInitialized={isInitialized}
+                getVocabularyInfo={getVocabularyInfo}
+              />
+            )}
+            
             <DetectionPanel
               detectedSigns={detectedSigns}
               currentGesture={currentGesture}
               isDetecting={isDetecting}
               isInitialized={isInitialized}
+              isProcessing={isProcessing}
+              detectionMode={detectionMode}
+              onModeChange={setDetectionMode}
               settings={settings}
               translateSign={translateSign}
             />

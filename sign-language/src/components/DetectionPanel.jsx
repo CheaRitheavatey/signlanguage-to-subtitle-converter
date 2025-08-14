@@ -1,15 +1,25 @@
 import React from 'react';
-import { Eye, TrendingUp, Activity } from 'lucide-react';
+import { Eye, TrendingUp, Activity, Brain, Cpu, Loader } from 'lucide-react';
 
 export const DetectionPanel = ({
   detectedSigns,
   currentGesture,
   isDetecting,
   isInitialized,
+  isProcessing,
+  detectionMode,
+  onModeChange,
   settings,
   translateSign,
 }) => {
   const recentSigns = detectedSigns.slice(-5);
+  
+  const getStatusText = () => {
+    if (!isInitialized) return 'Initializing...';
+    if (isProcessing) return 'Processing...';
+    if (isDetecting) return 'Active';
+    return 'Inactive';
+  };
 
   return (
     <div className="detection-panel">
@@ -20,10 +30,32 @@ export const DetectionPanel = ({
         </div>
         
         <div className="status-indicator">
-          <div className={`status-dot ${isDetecting ? 'active' : ''}`} />
+          <div className={`status-dot ${isDetecting ? 'active' : ''} ${isProcessing ? 'processing' : ''}`} />
           <span className="status-text">
-            {!isInitialized ? 'Initializing...' : isDetecting ? 'Active' : 'Inactive'}
+            {getStatusText()}
           </span>
+          {isProcessing && <Loader size={14} className="status-spinner" />}
+        </div>
+      </div>
+      
+      {/* Detection Mode Selector */}
+      <div className="detection-mode">
+        <label className="mode-label">Detection Method:</label>
+        <div className="mode-buttons">
+          <button
+            onClick={() => onModeChange('mediapipe')}
+            className={`mode-btn ${detectionMode === 'mediapipe' ? 'active' : ''}`}
+          >
+            <Cpu size={16} />
+            <span>MediaPipe</span>
+          </button>
+          <button
+            onClick={() => onModeChange('wlasl')}
+            className={`mode-btn ${detectionMode === 'wlasl' ? 'active' : ''}`}
+          >
+            <Brain size={16} />
+            <span>WLASL</span>
+          </button>
         </div>
       </div>
       
@@ -33,11 +65,16 @@ export const DetectionPanel = ({
           <div className="gesture-info">
             <Activity className="gesture-icon" size={16} />
             <span className="gesture-name">
-              Current: {translateSign(currentGesture.name)}
+              Current: {detectionMode === 'wlasl' ? currentGesture.name : translateSign(currentGesture.name)}
             </span>
             {settings.showConfidence && (
               <span className="confidence-score">
                 {Math.round(currentGesture.confidence * 100)}%
+              </span>
+            )}
+            {currentGesture.category && (
+              <span className="gesture-category">
+                ({currentGesture.category})
               </span>
             )}
           </div>
@@ -50,17 +87,27 @@ export const DetectionPanel = ({
             <div className="sign-content">
               <div className="sign-names">
                 <span className="sign-translated">
-                  {translateSign(sign.sign)}
+                  {sign.isSentence ? sign.sign : (detectionMode === 'wlasl' ? sign.sign : translateSign(sign.sign))}
                 </span>
-                {sign.sign !== translateSign(sign.sign) && (
+                {!sign.isSentence && detectionMode !== 'wlasl' && sign.sign !== translateSign(sign.sign) && (
                   <span className="sign-original">
                     ({sign.sign})
+                  </span>
+                )}
+                {sign.category && (
+                  <span className="sign-category">
+                    [{sign.category}]
                   </span>
                 )}
               </div>
               <div className="sign-timestamp">
                 {new Date(sign.timestamp).toLocaleTimeString()}
               </div>
+              {sign.originalSigns && (
+                <div className="original-signs">
+                  <small>From: {sign.originalSigns.join(', ')}</small>
+                </div>
+              )}
             </div>
             
             {settings.showConfidence && (
@@ -78,10 +125,13 @@ export const DetectionPanel = ({
           <div className="empty-state">
             <Eye size={32} className="empty-icon" />
             <p className="empty-title">
-              {!isInitialized ? 'Initializing MediaPipe...' : 'No signs detected yet'}
+              {!isInitialized ? `Initializing ${detectionMode === 'wlasl' ? 'WLASL Service' : 'MediaPipe'}...` : 'No signs detected yet'}
             </p>
             <p className="empty-subtitle">
-              {!isInitialized ? 'Please wait...' : 'Start detection to see results'}
+              {!isInitialized ? 
+                (detectionMode === 'wlasl' ? 'Configure API key in settings' : 'Please wait...') : 
+                'Start detection to see results'
+              }
             </p>
           </div>
         )}
