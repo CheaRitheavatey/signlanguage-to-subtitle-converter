@@ -301,3 +301,39 @@ export class SignLanguageProcessor {
     this.gestureHistory = [];
   }
 }
+
+
+// landmarksFrame: { left: [{x,y,z}*21] | null, right: [{x,y,z}*21] | null }
+export function toFeatures(landmarksFrame) {
+  // Use wrist(0) and index_mcp(5) as reference for each hand if present.
+  function handVec(hand) {
+    if (!hand || hand.length < 21) return Array(21*3).fill(0);
+    const wrist = hand[0];
+    const idxMcp = hand[5];
+    const scale = Math.hypot(idxMcp.x - wrist.x, idxMcp.y - wrist.y) || 1;
+    const arr = [];
+    for (let i=0;i<21;i++){
+      const dx = (hand[i].x - wrist.x) / scale;
+      const dy = (hand[i].y - wrist.y) / scale;
+      const dz = ((hand[i].z || 0) - (wrist.z || 0)) / scale;
+      arr.push(dx, dy, dz);
+    }
+    return arr;
+  }
+  const L = handVec(landmarksFrame.left);
+  const R = handVec(landmarksFrame.right);
+  return [...L, ...R]; // length = 21*3*2 = 126
+}
+
+// simple majority-vote smoother over last N predictions
+export function smoothPredictions(ring, newIdx, N=7) {
+  ring.push(newIdx);
+  if (ring.length > N) ring.shift();
+  const counts = {};
+  for (const k of ring) counts[k] = (counts[k]||0)+1;
+  let best=-1, idx=-1;
+  Object.entries(counts).forEach(([k,v])=>{
+    if (v>best){best=v; idx=Number(k);}
+  });
+  return idx;
+}
