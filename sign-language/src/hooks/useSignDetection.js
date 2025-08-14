@@ -48,3 +48,6 @@ export const useSignDetection = (settings) => {
     translateSign,
   };
 };
+
+
+// need to update by loading model + infer on the fly
