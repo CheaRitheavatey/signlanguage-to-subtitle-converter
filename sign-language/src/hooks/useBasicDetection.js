@@ -30,7 +30,7 @@ export const useBasicDetection = (settings) => {
 
   // Capture and process video frame
   const processFrame = useCallback(async () => {
-    if (!videoRef.current || !canvasRef.current || !isInitialized || isProcessing) {
+    if (!videoRef.current || !canvasRef.current || isProcessing) {
       return;
     }
 
@@ -48,51 +48,54 @@ export const useBasicDetection = (settings) => {
       const video = videoRef.current;
       const ctx = canvas.getContext('2d');
 
-      // Draw current video frame to canvas
+      // Always draw current video frame to canvas first
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Get image data for processing
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      // Only process detection if initialized and enough time has passed
+      if (isInitialized && now - lastProcessTimeRef.current >= 2000) {
+        // Get image data for processing
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-      // Detect sign using basic service
-      const detection = await basicSignService.detectSignFromFrame(imageData);
+        // Detect sign using basic service
+        const detection = await basicSignService.detectSignFromFrame(imageData);
 
-      if (detection && detection.confidence >= settings.minConfidence) {
-        const newSign = {
-          id: Date.now().toString(),
-          sign: detection.sign,
-          confidence: detection.confidence,
-          timestamp: Date.now(),
-          category: detection.category,
-          coordinates: {
-            x: Math.random() * 200 + 100,
-            y: Math.random() * 150 + 100,
-            width: 120,
-            height: 80,
-          },
-        };
+        if (detection && detection.confidence >= settings.minConfidence) {
+          const newSign = {
+            id: Date.now().toString(),
+            sign: detection.sign,
+            confidence: detection.confidence,
+            timestamp: Date.now(),
+            category: detection.category,
+            coordinates: {
+              x: Math.random() * 200 + 100,
+              y: Math.random() * 150 + 100,
+              width: 120,
+              height: 80,
+            },
+          };
 
-        // Update current gesture
-        setCurrentGesture({
-          name: detection.sign,
-          confidence: detection.confidence,
-          category: detection.category
-        });
+          // Update current gesture
+          setCurrentGesture({
+            name: detection.sign,
+            confidence: detection.confidence,
+            category: detection.category
+          });
 
-        // Add to detection history
-        detectionHistoryRef.current.push(newSign);
-        
-        // Keep only recent detections (last 10)
-        if (detectionHistoryRef.current.length > 10) {
-          detectionHistoryRef.current.shift();
-        }
+          // Add to detection history
+          detectionHistoryRef.current.push(newSign);
+          
+          // Keep only recent detections (last 10)
+          if (detectionHistoryRef.current.length > 10) {
+            detectionHistoryRef.current.shift();
+          }
 
-        // Update detected signs state
-        setDetectedSigns([...detectionHistoryRef.current]);
+          // Update detected signs state
+          setDetectedSigns([...detectionHistoryRef.current]);
 
-        // Process signs into fluent sentences periodically
-        if (detectionHistoryRef.current.length >= 3) {
-          await processSignsToSentence();
+          // Process signs into fluent sentences periodically
+          if (detectionHistoryRef.current.length >= 3) {
+            await processSignsToSentence();
+          }
         }
       }
     } catch (error) {
@@ -147,24 +150,21 @@ export const useBasicDetection = (settings) => {
 
   // Start detection loop
   const startDetection = useCallback((videoElement) => {
-    if (!isInitialized) {
-      console.warn('Basic detection service not initialized.');
-      return;
-    }
-
     videoRef.current = videoElement;
     setIsDetecting(true);
 
     // Start processing loop
     const processLoop = () => {
-      if (isDetecting) {
+      if (videoRef.current && canvasRef.current) {
         processFrame();
+      }
+      if (isDetecting) {
         processingRef.current = requestAnimationFrame(processLoop);
       }
     };
 
     processingRef.current = requestAnimationFrame(processLoop);
-  }, [isInitialized, isDetecting, processFrame]);
+  }, [isDetecting, processFrame]);
 
   // Stop detection
   const stopDetection = useCallback(() => {

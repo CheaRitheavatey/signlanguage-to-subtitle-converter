@@ -13,7 +13,7 @@ export async function glossesToText({items, targetLang = 'en', prev = ''}) {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
-            model: 'aisingapore/Gemma-SEA-LION-v3-9B-IT',
+            model: 'aisingapore/Llama-SEA-LION-v3.5-8B-R',
             messages:[
                 {role: 'system', content: system}, 
                 {role: 'user', content: user}

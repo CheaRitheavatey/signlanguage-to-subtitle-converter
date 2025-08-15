@@ -72,14 +72,17 @@ export const VideoPlayer = ({
               autoPlay
               muted
               playsInline
-              className="video-hidden"
+              style={{width: '100%', height: 'auto', background: '#FFFFFF'}}
+              className={canvasRef ? "video-hidden" : "video-element"}
             />
-            <canvas
-              ref={canvasRef}
-              width={1280}
-              height={720}
-              className="video-canvas"
-            />
+            {canvasRef && (
+              <canvas
+                ref={canvasRef}
+                width={1280}
+                height={720}
+                className="video-canvas"
+              />
+            )}
           </>
         ) : (
           <video

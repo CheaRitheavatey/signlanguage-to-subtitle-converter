@@ -1,9 +1,9 @@
 // Sea Lion AI Service for Natural Language Processing
 class SeaLionService {
   constructor() {
-    this.apiUrl = 'https://api.sea-lion.ai/v1/models'; // Sea Lion API endpoint
-    this.apiKey = 'sk-tm0MHQfh4xU3OI81E8pHxA';
-    this.model = 'aisingapore/Gemma-SEA-LION-v3-9B-IT'; // Sea Lion model
+    this.apiUrl = 'https://api.sea-lion.ai/v1'; // Sea Lion API endpoint
+    this.apiKey = process.env.API_KEY;
+    this.model = 'aisingapore/Llama-SEA-LION-v3.5-8B-R'; // Sea Lion model
   }
 
   setApiKey(apiKey) {

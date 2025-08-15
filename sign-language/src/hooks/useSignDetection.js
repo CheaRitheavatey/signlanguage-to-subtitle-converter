@@ -43,10 +43,14 @@ export const useSignDetection = (settings) => {
     if (detectionMode === 'basic') {
       if (videoElement && isBasicInitialized) {
         startBasicDetection(videoElement);
+      } else {
+        console.warn('Basic detection not initialized or video element is invalid.');
       }
     } else {
       if (videoElement && isInitialized) {
         startMediaPipeDetection(videoElement);
+      } else {
+        console.warn('MediaPipe detection not initialized or video element is invalid.');
       }
     }
   }, [detectionMode, startBasicDetection, startMediaPipeDetection, isBasicInitialized, isInitialized]);
@@ -71,6 +75,13 @@ export const useSignDetection = (settings) => {
       clearMediaPipeDetections();
     }
   }, [detectionMode, clearBasicDetections, clearMediaPipeDetections]);
+
+  // Call this to process detected signs to sentences
+  // useEffect(() => {
+  //   if (detectionMode === 'basic' && basicDetectedSigns.length > 0) {
+  //     processSignsToSentence(activeDetectedSigns);
+  //   }
+  // }, [activeDetectedSigns, detectionMode, processSignsToSentence]);
 
   return {
     // Detection state

@@ -25,6 +25,9 @@ export const useCamera = () => {
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        videoRef.current.onLoadedmetadata = () => {
+          videoRef.current.play();
+        }
         streamRef.current = stream;
         
         setCameraState({

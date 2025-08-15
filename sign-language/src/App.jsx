@@ -52,9 +52,10 @@ function App() {
       }, 1000);
     } else if (isLiveMode && videoRef.current) {
       startDetection(videoRef.current);
-    } else {
-      startDetection();
     }
+    
+    startDetection();
+    
   };
 
   const handleStopDetection = () => {
@@ -89,6 +90,12 @@ function App() {
           </div>
           
           <div className="header-actions">
+            <button
+              onClick={console.log("about page")}
+              className="header-btn theme-btn"
+            >
+              Video Demo
+            </button>
             <button
               onClick={toggleTheme}
               className="header-btn theme-btn"
