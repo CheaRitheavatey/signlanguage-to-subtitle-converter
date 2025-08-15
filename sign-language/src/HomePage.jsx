@@ -1,17 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Play, Square, Camera, Settings as SettingsIcon, Sun, Moon } from 'lucide-react';
-import { VideoPlayer } from './components/VideoPlayer';
-import { SubtitleOverlay } from './components/SubtitleOverlay';
-import { DetectionPanel } from './components/DetectionPanel';
-import { SettingPanel } from './components/SettingPanel';
-import { SubtitleHistory } from './components/SubtitleHistory';
-import { SeaLionSettings } from './components/SeaLionSettings';
-import { useCamera } from './hooks/useCamera';
-import { useSignDetection } from './hooks/useSignDetection';
-import { useSubtitles } from './hooks/useSubtitles';
-import { DEFAULT_SETTINGS } from './types';
-
-function App() {
+function HomePage() {
+    function App() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isLiveMode, setIsLiveMode] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -36,6 +24,8 @@ function App() {
     processSignsToSentence
   } = useSignDetection(settings);
   const { subtitles, currentSubtitle, processSignsToText, exportSRT, clearSubtitles } = useSubtitles(settings);
+  const navigate = useNavigate();
+
   useEffect(() => {
     processSignsToText(detectedSigns, translateSign);
   }, [detectedSigns, processSignsToText, translateSign]);
@@ -90,12 +80,12 @@ function App() {
           </div>
           
           <div className="header-actions">
-            {/* <button
+            <button
               onClick={() => navigate('/about')}
               className="header-btn theme-btn"
             >
               Video Demo
-            </button> */}
+            </button>
             <button
               onClick={toggleTheme}
               className="header-btn theme-btn"
@@ -176,8 +166,6 @@ function App() {
                 isInitialized={isInitialized}
               />
             )}
-
-            {}
             
             <DetectionPanel
               detectedSigns={detectedSigns}
@@ -202,6 +190,6 @@ function App() {
     </div>
   );
 }
+}
 
-
-export default App;
+export default HomePage;

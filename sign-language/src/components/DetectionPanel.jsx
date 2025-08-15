@@ -1,5 +1,5 @@
-import React from 'react';
-import { Eye, TrendingUp, Activity, Brain, Cpu, Loader } from 'lucide-react';
+import React, { useState } from 'react';
+import { Eye, TrendingUp, Activity, Brain, Cpu, Loader, Circle, Video } from 'lucide-react';
 
 export const DetectionPanel = ({
   detectedSigns,
@@ -13,7 +13,7 @@ export const DetectionPanel = ({
   translateSign,
 }) => {
   const recentSigns = detectedSigns.slice(-5);
-  
+  const [showAbout, setShowAbout] = useState(false);
   const getStatusText = () => {
     if (!isInitialized) return 'Initializing...';
     if (isProcessing) return 'Processing...';
@@ -55,6 +55,13 @@ export const DetectionPanel = ({
           >
             <Brain size={16} />
             <span>Basic + AI</span>
+          </button>
+          <button
+            onClick={() => setShowAbout(!showAbout)}
+            className={`mode-btn ${showAbout ? 'active' : ''}`}
+          >
+            <Circle size={16} />
+            <span>Video Demo</span>
           </button>
         </div>
       </div>
