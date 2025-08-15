@@ -50,11 +50,11 @@ export const DetectionPanel = ({
             <span>MediaPipe</span>
           </button>
           <button
-            onClick={() => onModeChange('wlasl')}
-            className={`mode-btn ${detectionMode === 'wlasl' ? 'active' : ''}`}
+            onClick={() => onModeChange('basic')}
+            className={`mode-btn ${detectionMode === 'basic' ? 'active' : ''}`}
           >
             <Brain size={16} />
-            <span>WLASL</span>
+            <span>Basic + AI</span>
           </button>
         </div>
       </div>
@@ -65,7 +65,7 @@ export const DetectionPanel = ({
           <div className="gesture-info">
             <Activity className="gesture-icon" size={16} />
             <span className="gesture-name">
-              Current: {detectionMode === 'wlasl' ? currentGesture.name : translateSign(currentGesture.name)}
+              Current: {detectionMode === 'basic' ? currentGesture.name : translateSign(currentGesture.name)}
             </span>
             {settings.showConfidence && (
               <span className="confidence-score">
@@ -87,9 +87,9 @@ export const DetectionPanel = ({
             <div className="sign-content">
               <div className="sign-names">
                 <span className="sign-translated">
-                  {sign.isSentence ? sign.sign : (detectionMode === 'wlasl' ? sign.sign : translateSign(sign.sign))}
+                  {sign.isSentence ? sign.sign : (detectionMode === 'basic' ? sign.sign : translateSign(sign.sign))}
                 </span>
-                {!sign.isSentence && detectionMode !== 'wlasl' && sign.sign !== translateSign(sign.sign) && (
+                {!sign.isSentence && detectionMode !== 'basic' && sign.sign !== translateSign(sign.sign) && (
                   <span className="sign-original">
                     ({sign.sign})
                   </span>
@@ -125,11 +125,11 @@ export const DetectionPanel = ({
           <div className="empty-state">
             <Eye size={32} className="empty-icon" />
             <p className="empty-title">
-              {!isInitialized ? `Initializing ${detectionMode === 'wlasl' ? 'WLASL Service' : 'MediaPipe'}...` : 'No signs detected yet'}
+              {!isInitialized ? `Initializing ${detectionMode === 'basic' ? 'Basic Detection' : 'MediaPipe'}...` : 'No signs detected yet'}
             </p>
             <p className="empty-subtitle">
               {!isInitialized ? 
-                (detectionMode === 'wlasl' ? 'Configure API key in settings' : 'Please wait...') : 
+                (detectionMode === 'basic' ? 'Basic detection ready' : 'Please wait...') : 
                 'Start detection to see results'
               }
             </p>

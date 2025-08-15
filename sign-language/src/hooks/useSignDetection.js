@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react';
 import { useMediaPipeDetection } from './useMediaPipeDetection';
-import { useWLASLDetection } from './useWLASLDetection';
+import { useBasicDetection } from './useBasicDetection';
 import { SIGN_TRANSLATIONS } from '../types';
 
 export const useSignDetection = (settings) => {
-  const [detectionMode, setDetectionMode] = useState('mediapipe'); // 'mediapipe' or 'wlasl'
+  const [detectionMode, setDetectionMode] = useState('mediapipe'); // 'mediapipe' or 'basic'
   
   // MediaPipe detection (original)
   const {
@@ -18,76 +18,68 @@ export const useSignDetection = (settings) => {
     clearDetections: clearMediaPipeDetections,
   } = useMediaPipeDetection();
 
-  // WLASL-powered detection (new)
+  // Basic detection with Sea Lion AI (new)
   const {
-    isInitialized: isWLASLInitialized,
-    isDetecting: isWLASLDetecting,
-    isProcessing: isWLASLProcessing,
-    currentGesture: wlaslCurrentGesture,
-    detectedSigns: wlaslDetectedSigns,
-    canvasRef: wlaslCanvasRef,
+    isInitialized: isBasicInitialized,
+    isDetecting: isBasicDetecting,
+    isProcessing: isBasicProcessing,
+    currentGesture: basicCurrentGesture,
+    detectedSigns: basicDetectedSigns,
+    canvasRef: basicCanvasRef,
     apiKey,
-    startDetection: startWLASLDetection,
-    stopDetection: stopWLASLDetection,
-    clearDetections: clearWLASLDetections,
+    startDetection: startBasicDetection,
+    stopDetection: stopBasicDetection,
+    clearDetections: clearBasicDetections,
     updateApiKey,
-    processSignsToSentence,
-    getVocabularyInfo
-  } = useWLASLDetection(settings);
+    processSignsToSentence
+  } = useBasicDetection(settings);
 
   // Filter signs based on confidence threshold
-  const activeDetectedSigns = detectionMode === 'wlasl' 
-    ? wlaslDetectedSigns.filter(sign => sign.confidence >= settings.minConfidence)
+  const activeDetectedSigns = detectionMode === 'basic' 
+    ? basicDetectedSigns.filter(sign => sign.confidence >= settings.minConfidence)
     : rawDetectedSigns.filter(sign => sign.confidence >= settings.minConfidence);
 
   const startDetection = useCallback((videoElement) => {
-    if (detectionMode === 'wlasl') {
-      if (videoElement && isWLASLInitialized) {
-        startWLASLDetection(videoElement);
+    if (detectionMode === 'basic') {
+      if (videoElement && isBasicInitialized) {
+        startBasicDetection(videoElement);
       }
     } else {
       if (videoElement && isInitialized) {
         startMediaPipeDetection(videoElement);
       }
     }
-  }, [detectionMode, startWLASLDetection, startMediaPipeDetection, isWLASLInitialized, isInitialized]);
+  }, [detectionMode, startBasicDetection, startMediaPipeDetection, isBasicInitialized, isInitialized]);
 
   const stopDetection = useCallback(() => {
-    if (detectionMode === 'wlasl') {
-      stopWLASLDetection();
+    if (detectionMode === 'basic') {
+      stopBasicDetection();
     } else {
       stopMediaPipeDetection();
     }
-  }, [detectionMode, stopWLASLDetection, stopMediaPipeDetection]);
+  }, [detectionMode, stopBasicDetection, stopMediaPipeDetection]);
 
   const translateSign = useCallback((sign) => {
-    // For WLASL mode, signs are already in English, just apply language translation if needed
-    if (detectionMode === 'wlasl') {
-      const translations = SIGN_TRANSLATIONS[settings.language];
-      return translations[sign] || sign;
-    }
-    
-    // For MediaPipe mode, use existing translation logic
     const translations = SIGN_TRANSLATIONS[settings.language];
     return translations[sign] || sign;
   }, [settings.language]);
 
   const clearDetections = useCallback(() => {
-    if (detectionMode === 'wlasl') {
-      clearWLASLDetections();
+    if (detectionMode === 'basic') {
+      clearBasicDetections();
     } else {
       clearMediaPipeDetections();
     }
-  }, [detectionMode, clearWLASLDetections, clearMediaPipeDetections]);
+  }, [detectionMode, clearBasicDetections, clearMediaPipeDetections]);
 
   return {
     // Detection state
-    isInitialized: detectionMode === 'wlasl' ? isWLASLInitialized : isInitialized,
+    isInitialized: detectionMode === 'basic' ? isBasicInitialized : isInitialized,
     detectedSigns: activeDetectedSigns,
-    currentGesture: detectionMode === 'wlasl' ? wlaslCurrentGesture : currentGesture,
-    isDetecting: detectionMode === 'wlasl' ? isWLASLDetecting : isDetecting,
-    isProcessing: detectionMode === 'wlasl' ? isWLASLProcessing : false,
-    canvasRef: detectionMode === 'wlasl' ? wlaslCanvasRef : canvasRef,
+    currentGesture: detectionMode === 'basic' ? basicCurrentGesture : currentGesture,
+    isDetecting: detectionMode === 'basic' ? isBasicDetecting : isDetecting,
+    isProcessing: detectionMode === 'basic' ? isBasicProcessing : false,
+    canvasRef: detectionMode === 'basic' ? basicCanvasRef : canvasRef,
     
     // Detection controls
     startDetection,
@@ -99,10 +91,9 @@ export const useSignDetection = (settings) => {
     detectionMode,
     setDetectionMode,
     
-    // WLASL-specific features
+    // Basic detection with Sea Lion AI features
     apiKey,
     updateApiKey,
-    processSignsToSentence,
-    getVocabularyInfo
+    processSignsToSentence
   };
 };
