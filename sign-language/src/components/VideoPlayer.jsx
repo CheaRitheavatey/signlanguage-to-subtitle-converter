@@ -72,7 +72,6 @@ export const VideoPlayer = ({
               autoPlay
               muted
               playsInline
-              style={{width: '100%', height: 'auto', background: '#FFFFFF'}}
               className={canvasRef ? "video-hidden" : "video-element"}
             />
             {canvasRef && (

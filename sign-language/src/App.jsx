@@ -11,6 +11,7 @@ import { useSignDetection } from './hooks/useSignDetection';
 import { useSubtitles } from './hooks/useSubtitles';
 import { DEFAULT_SETTINGS } from './types';
 
+
 function App() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isLiveMode, setIsLiveMode] = useState(true);
@@ -74,6 +75,7 @@ function App() {
     document.documentElement.classList.toggle('dark', settings.theme === 'dark');
   }, [settings.theme]);
 
+
   return (
     <div className={`app ${settings.theme}`}>
       {/* Header */}
@@ -91,7 +93,7 @@ function App() {
           
           <div className="header-actions">
             <button
-              onClick={console.log("about page")}
+              onClick={() => window.location.href='./components/about.html'}
               className="header-btn theme-btn"
             >
               Video Demo

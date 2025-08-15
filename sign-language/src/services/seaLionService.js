@@ -2,7 +2,7 @@
 class SeaLionService {
   constructor() {
     this.apiUrl = 'https://api.sea-lion.ai/v1'; // Sea Lion API endpoint
-    this.apiKey = process.env.REACT_APP_SEALION_API_KEY;
+    this.apiKey = null;
     this.model = 'aisingapore/Llama-SEA-LION-v3.5-8B-R'; // Sea Lion model
   }
 
