@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Eye, TrendingUp, Activity, Brain, Cpu, Loader, Circle, Video } from 'lucide-react';
+import About from './About';
 
 export const DetectionPanel = ({
   detectedSigns,
@@ -65,7 +66,7 @@ export const DetectionPanel = ({
           </button>
         </div>
       </div>
-      
+      {showAbout && <About/>}
       {/* Current Gesture Display */}
       {currentGesture && isDetecting && (
         <div className="current-gesture">

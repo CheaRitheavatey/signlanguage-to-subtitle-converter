@@ -14,10 +14,10 @@ const About = () => {
 
   const headerStyle = {
     textAlign: 'center',
-    backgroundColor: '#4CAF50',
+    backgroundColor: 'black',
     color: 'white',
-    padding: '1rem',
-    borderRadius: '8px 8px 0 0',
+    padding: '0.1rem',
+    borderRadius: '12px 12px 0 0',
   };
 
   const paragraphStyle = {
@@ -58,9 +58,13 @@ const About = () => {
 
       <main>
         <p style={paragraphStyle}>
-          This project is a real-time Sign Language Converter that uses computer vision and AI to detect hand gestures
-          and translate them into readable subtitles. It allows users to communicate more easily with deaf or hard-of-hearing
-          individuals by converting sign language into fluent text and even translating it into different languages.
+          <b>Problem</b>: Many hearing impaired people is having a hard time communicating with other people. <br />
+          <b>Goal</b>: This is why this will convert from sign language to subtitles. <br />
+          <b>Current</b>: Video demo is provided below, the camera can be test. right now it is only able to detect a few word and alphabet as a proof of concept<br />
+         <b>Future plan</b>: <br />
+            1. use pre-train dataset for common word use in sign language <br />
+            2. incorporate SEA-LION ai to make the subtitle fluent and understandable <br />
+            3. incorporate SEA-LION ai to make the subtitle not only availble in English but khmer and more.
         </p>
 
         <div style={videoWrapperStyle}>
@@ -73,9 +77,9 @@ const About = () => {
         </div>
       </main>
 
-      <footer style={footerStyle}>
+      {/* <footer style={footerStyle}>
         &copy; 2025 Sign Language Converter Project
-      </footer>
+      </footer> */}
     </div>
   );
 };
