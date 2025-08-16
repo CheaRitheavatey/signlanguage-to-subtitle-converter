@@ -154,7 +154,6 @@ function App() {
                 </p>
               </div>
             )}
-            
             <DetectionPanel
               detectedSigns={detectedSigns}
               currentGesture={currentGesture}

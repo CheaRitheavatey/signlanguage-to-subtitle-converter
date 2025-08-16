@@ -1,85 +1,67 @@
-// About.jsx
 import React from 'react';
 
 const About = () => {
-  const videoUrl = "https://www.youtube.com/embed/dQw4w9WgXcQ"; // Replace with your demo video URL
-
-  const containerStyle = {
-    maxWidth: '800px',
-    margin: '2rem auto',
-    padding: '0 1rem',
-    fontFamily: 'Arial, sans-serif',
-    color: '#333',
-  };
-
-  const headerStyle = {
-    textAlign: 'center',
-    backgroundColor: 'black',
-    color: 'white',
-    padding: '0.1rem',
-    borderRadius: '12px 12px 0 0',
-  };
-
-  const paragraphStyle = {
-    lineHeight: 1.6,
-    fontSize: '1.1rem',
-    marginBottom: '2rem',
-  };
-
-  const videoWrapperStyle = {
-    display: 'flex',
-    justifyContent: 'center',
-    marginBottom: '2rem',
-  };
-
-  const iframeStyle = {
-    width: '100%',
-    maxWidth: '720px',
-    height: '405px',
-    border: 'none',
-    borderRadius: '8px',
-    boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
-  };
-
-  const footerStyle = {
-    textAlign: 'center',
-    padding: '1rem',
-    backgroundColor: '#f1f1f1',
-    fontSize: '0.9rem',
-    color: '#555',
-    borderRadius: '0 0 8px 8px',
-  };
+  const videoUrl = "https://www.youtube.com/embed/dQw4w9WgXcQ";
 
   return (
-    <div style={containerStyle}>
-      <header style={headerStyle}>
-        <h1>About This Project</h1>
+    <div className="about-container">
+      <header className="about-header">
+        <h2>About: Sign Language to Subtitle Converter</h2>
+        <p>Real-time sign language to multilingual translation</p>
       </header>
 
-      <main>
-        <p style={paragraphStyle}>
-          <b>Problem</b>: Many hearing impaired people is having a hard time communicating with other people. <br />
-          <b>Goal</b>: This is why this will convert from sign language to subtitles. <br />
-          <b>Current</b>: Video demo is provided below, the camera can be test. right now it is only able to detect a few word and alphabet as a proof of concept<br />
-         <b>Future plan</b>: <br />
-            1. use pre-train dataset for common word use in sign language <br />
-            2. incorporate SEA-LION ai to make the subtitle fluent and understandable <br />
-            3. incorporate SEA-LION ai to make the subtitle not only availble in English but khmer and more.
+      <div className="about-section">
+        <p className="about-paragraph">
+          Our project addresses the critical communication barrier faced by the hearing impaired community. 
+          Using computer vision and SEA-LION AI technology, we're developing a real-time system that 
+          converts sign language into fluent, multilingual subtitles - making everyday communication more accessible.
         </p>
 
-        <div style={videoWrapperStyle}>
+        <div className="feature-list">
+          <div className="feature-item">
+            <h3>Current Capabilities</h3>
+            <ul>
+              <li>Real-time alphabet (with accuracy %) and basic word recognition</li>
+              <li>Proof-of-concept demonstration available</li>
+              <li>Webcam compatible interface</li>
+            </ul>
+          </div>
+          
+          <div className="feature-item">
+            <h3>Technology Plan On Using</h3>
+            <ul>
+              <li>Pre-trained sign language datasets (Hugging Face, Kaggle, or other)</li>
+              <li>Computer vision processing</li>
+              <li>SEA-LION AI for language processing</li>
+            </ul>
+          </div>
+          
+          <div className="feature-item">
+            <h3>Future Roadmap</h3>
+            <ul>
+              <li>Expanded vocabulary recognition</li>
+              <li>Multilingual translation (English, Khmer, etc.)</li>
+              <li>Context-aware sentence generation</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="video-wrapper">
           <iframe
-            style={iframeStyle}
+            className="video-iframe"
             src={videoUrl}
             allowFullScreen
-            title="Video Demo"
+            title="Sign Language Translation Demo"
           ></iframe>
         </div>
-      </main>
 
-      {/* <footer style={footerStyle}>
-        &copy; 2025 Sign Language Converter Project
-      </footer> */}
+        <p>GitHub Link: <a href='https://github.com/CheaRitheavatey/signlanguage-to-subtitle-converter'>Here</a></p>
+
+        <p className="about-paragraph italic-text">
+          We hope to expand this project to demonstrates the solutions that
+          could potentially be compatible with applications in education, customer service, and daily communication.
+        </p>
+      </div>
     </div>
   );
 };
