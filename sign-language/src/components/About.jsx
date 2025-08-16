@@ -1,8 +1,8 @@
 import React from 'react';
 
 const About = () => {
-  const videoUrl = "https://www.youtube.com/embed/dQw4w9WgXcQ";
-
+  // const videoUrl = "https://www.youtube.com/embed/s-GCGppMOGQ";
+  const videoUrl =" https://www.youtube.com/embed/s-GCGppMOGQ?rel=0&modestbranding=1";
   return (
     <div className="about-container">
       <header className="about-header">
@@ -15,6 +15,7 @@ const About = () => {
           Our project addresses the critical communication barrier faced by the hearing impaired community. 
           Using computer vision and SEA-LION AI technology, we're developing a real-time system that 
           converts sign language into fluent, multilingual subtitles - making everyday communication more accessible.
+          <br />YouTube Demo Link: <a href='https://youtu.be/s-GCGppMOGQ'>HERE</a> or watch down below!
         </p>
 
         <div className="feature-list">
@@ -54,8 +55,6 @@ const About = () => {
             title="Sign Language Translation Demo"
           ></iframe>
         </div>
-
-        <p>GitHub Link: <a href='https://github.com/CheaRitheavatey/signlanguage-to-subtitle-converter'>Here</a></p>
 
         <p className="about-paragraph italic-text">
           We hope to expand this project to demonstrates the solutions that
