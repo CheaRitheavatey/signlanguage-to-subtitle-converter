@@ -154,26 +154,6 @@ function App() {
                 </p>
               </div>
             )}
-          </div>
-          
-          {/* Sidebar */}
-          <div className="sidebar">
-            {showSettings && (
-              <SettingPanel
-                settings={settings}
-                onSettingsChange={setSettings}
-              />
-            )}
-            
-            {detectionMode === 'basic' && (
-              <SeaLionSettings
-                apiKey={apiKey}
-                onUpdateApiKey={updateApiKey}
-                isInitialized={isInitialized}
-              />
-            )}
-
-            {}
             
             <DetectionPanel
               detectedSigns={detectedSigns}
@@ -186,6 +166,27 @@ function App() {
               settings={settings}
               translateSign={translateSign}
             />
+          </div>
+          
+          {/* Sidebar */}
+          <div className="sidebar">
+            {showSettings && (
+              <SettingPanel
+                settings={settings}
+                onSettingsChange={setSettings}
+              />
+            )}
+            
+            
+            {detectionMode === 'basic' && (
+              <SeaLionSettings
+                apiKey={apiKey}
+                onUpdateApiKey={updateApiKey}
+                isInitialized={isInitialized}
+              />
+            )}
+
+   
             
             <SubtitleHistory
               subtitles={subtitles}
