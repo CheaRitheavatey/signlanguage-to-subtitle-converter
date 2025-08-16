@@ -69,6 +69,7 @@ function App() {
     setSettings(prev => ({ ...prev, theme: newTheme }));
   };
 
+
   useEffect(() => {
     document.documentElement.classList.toggle('dark', settings.theme === 'dark');
   }, [settings.theme]);
@@ -90,12 +91,7 @@ function App() {
           </div>
           
           <div className="header-actions">
-            {/* <button
-              onClick={() => navigate('/about')}
-              className="header-btn theme-btn"
-            >
-              Video Demo
-            </button> */}
+          
             <button
               onClick={toggleTheme}
               className="header-btn theme-btn"

@@ -44,22 +44,26 @@ export const DetectionPanel = ({
         <label className="mode-label">Detection Method:</label>
         <div className="mode-buttons">
           <button
-            onClick={() => onModeChange('mediapipe')}
+            onClick={() => {onModeChange('mediapipe'); setShowAbout(false)}}
             className={`mode-btn ${detectionMode === 'mediapipe' ? 'active' : ''}`}
           >
             <Cpu size={16} />
             <span>MediaPipe</span>
           </button>
-          <button
+          {/* <button
             onClick={() => onModeChange('basic')}
             className={`mode-btn ${detectionMode === 'basic' ? 'active' : ''}`}
           >
             <Brain size={16} />
             <span>Basic + AI</span>
-          </button>
+          </button> */}
           <button
-            onClick={() => setShowAbout(!showAbout)}
-            className={`mode-btn ${showAbout ? 'active' : ''}`}
+            onClick={() => {
+              onModeChange('about')
+              setShowAbout(!showAbout);
+
+            }}
+            className={`mode-btn ${detectionMode === 'about' ? 'active' : ''}`}
           >
             <Circle size={16} />
             <span>Video Demo</span>
