@@ -1,3 +1,1 @@
-import fiftyone as fo
-
-print(fo.__version__)
+import kagglehub
