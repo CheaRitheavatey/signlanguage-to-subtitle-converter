@@ -184,6 +184,14 @@ function App() {
                 isInitialized={isInitialized}
               />
             )}
+            {detectionMode === 'wlasl' && (
+              <WLASLSettings
+                isInitialized={isInitialized}
+                onDatasetLoad={(datasetInfo) => {
+                  console.log('WLASL Dataset loaded:', datasetInfo);
+                }}
+              />
+            )}
 
    
             
