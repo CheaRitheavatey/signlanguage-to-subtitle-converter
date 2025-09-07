@@ -68,3 +68,8 @@ export const DEFAULT_SETTINGS = {
   showConfidence: true,
   minConfidence: 0.7,
 };
+
+export const DETECTION_MODES = {
+  BASIC: 'basic',
+  WLASL: 'wlasl'
+};
