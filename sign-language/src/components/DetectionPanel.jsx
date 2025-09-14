@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { Eye, TrendingUp, Activity, Brain, Cpu, Loader, Circle, Video } from 'lucide-react';
-import About from './About';
+import React from 'react';
+import { Eye, TrendingUp, Activity, Brain, Cpu, Loader, Zap } from 'lucide-react';
 
 export const DetectionPanel = ({
   detectedSigns,
@@ -14,7 +13,7 @@ export const DetectionPanel = ({
   translateSign,
 }) => {
   const recentSigns = detectedSigns.slice(-5);
-  const [showAbout, setShowAbout] = useState(false);
+  
   const getStatusText = () => {
     if (!isInitialized) return 'Initializing...';
     if (isProcessing) return 'Processing...';
@@ -44,40 +43,36 @@ export const DetectionPanel = ({
         <label className="mode-label">Detection Method:</label>
         <div className="mode-buttons">
           <button
-            onClick={() => {onModeChange('mediapipe'); setShowAbout(false)}}
+            onClick={() => onModeChange('mediapipe')}
             className={`mode-btn ${detectionMode === 'mediapipe' ? 'active' : ''}`}
           >
             <Cpu size={16} />
             <span>MediaPipe</span>
           </button>
-          {/* <button
+          <button
             onClick={() => onModeChange('basic')}
             className={`mode-btn ${detectionMode === 'basic' ? 'active' : ''}`}
           >
             <Brain size={16} />
             <span>Basic + AI</span>
-          </button> */}
+          </button>
           <button
-            onClick={() => {
-              onModeChange('about')
-              setShowAbout(!showAbout);
-
-            }}
-            className={`mode-btn ${detectionMode === 'about' ? 'active' : ''}`}
+            onClick={() => onModeChange('teachable')}
+            className={`mode-btn ${detectionMode === 'teachable' ? 'active' : ''}`}
           >
-            <Circle size={16} />
-            <span>Video Demo</span>
+            <Zap size={16} />
+            <span>Custom Model</span>
           </button>
         </div>
       </div>
-      {showAbout && <About/>}
+      
       {/* Current Gesture Display */}
       {currentGesture && isDetecting && (
         <div className="current-gesture">
           <div className="gesture-info">
             <Activity className="gesture-icon" size={16} />
             <span className="gesture-name">
-              Current: {detectionMode === 'basic' ? currentGesture.name : translateSign(currentGesture.name)}
+              Current: {detectionMode === 'basic' || detectionMode === 'teachable' ? currentGesture.name : translateSign(currentGesture.name)}
             </span>
             {settings.showConfidence && (
               <span className="confidence-score">
@@ -99,9 +94,9 @@ export const DetectionPanel = ({
             <div className="sign-content">
               <div className="sign-names">
                 <span className="sign-translated">
-                  {sign.isSentence ? sign.sign : (detectionMode === 'basic' ? sign.sign : translateSign(sign.sign))}
+                  {sign.isSentence ? sign.sign : (detectionMode === 'basic' || detectionMode === 'teachable' ? sign.sign : translateSign(sign.sign))}
                 </span>
-                {!sign.isSentence && detectionMode !== 'basic' && sign.sign !== translateSign(sign.sign) && (
+                {!sign.isSentence && detectionMode === 'mediapipe' && sign.sign !== translateSign(sign.sign) && (
                   <span className="sign-original">
                     ({sign.sign})
                   </span>
@@ -137,11 +132,11 @@ export const DetectionPanel = ({
           <div className="empty-state">
             <Eye size={32} className="empty-icon" />
             <p className="empty-title">
-              {!isInitialized ? `Initializing ${detectionMode === 'basic' ? 'Basic Detection' : 'MediaPipe'}...` : 'No signs detected yet'}
+              {!isInitialized ? `Initializing ${detectionMode === 'basic' ? 'Basic Detection' : detectionMode === 'teachable' ? 'Custom Model' : 'MediaPipe'}...` : 'No signs detected yet'}
             </p>
             <p className="empty-subtitle">
               {!isInitialized ? 
-                (detectionMode === 'basic' ? 'Basic detection ready' : 'Please wait...') : 
+                (detectionMode === 'basic' ? 'Basic detection ready' : detectionMode === 'teachable' ? 'Loading custom model...' : 'Please wait...') : 
                 'Start detection to see results'
               }
             </p>

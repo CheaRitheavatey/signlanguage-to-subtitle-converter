@@ -6,6 +6,8 @@ import { DetectionPanel } from './components/DetectionPanel';
 import { SettingPanel } from './components/SettingPanel';
 import { SubtitleHistory } from './components/SubtitleHistory';
 import { SeaLionSettings } from './components/SeaLionSettings';
+import { TeachableMachineSettings } from './components/TeachableMachineSettings';
+// import { AboutPage } from './components/AboutPage';
 import { useCamera } from './hooks/useCamera';
 import { useSignDetection } from './hooks/useSignDetection';
 import { useSubtitles } from './hooks/useSubtitles';
@@ -15,6 +17,7 @@ function App() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isLiveMode, setIsLiveMode] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
+  const [currentPage, setCurrentPage] = useState('main'); // 'main' or 'about'
   const videoContainerRef = useRef(null);
   
   const { cameraState, videoRef, startCamera, stopCamera } = useCamera();
@@ -29,6 +32,8 @@ function App() {
     setDetectionMode,
     apiKey,
     updateApiKey,
+    modelInfo,
+    initializeTeachableModel,
     startDetection, 
     stopDetection, 
     clearDetections, 
@@ -36,6 +41,7 @@ function App() {
     processSignsToSentence
   } = useSignDetection(settings);
   const { subtitles, currentSubtitle, processSignsToText, exportSRT, clearSubtitles } = useSubtitles(settings);
+
   useEffect(() => {
     processSignsToText(detectedSigns, translateSign);
   }, [detectedSigns, processSignsToText, translateSign]);
@@ -51,10 +57,9 @@ function App() {
       }, 1000);
     } else if (isLiveMode && videoRef.current) {
       startDetection(videoRef.current);
+    } else {
+      startDetection();
     }
-    
-    startDetection();
-    
   };
 
   const handleStopDetection = () => {
@@ -69,11 +74,14 @@ function App() {
     setSettings(prev => ({ ...prev, theme: newTheme }));
   };
 
-
   useEffect(() => {
     document.documentElement.classList.toggle('dark', settings.theme === 'dark');
   }, [settings.theme]);
 
+  // Handle page navigation
+  if (currentPage === 'about') {
+    return <AboutPage onBackToMain={() => setCurrentPage('main')} />;
+  }
 
   return (
     <div className={`app ${settings.theme}`}>
@@ -91,7 +99,6 @@ function App() {
           </div>
           
           <div className="header-actions">
-          
             <button
               onClick={toggleTheme}
               className="header-btn theme-btn"
@@ -104,6 +111,14 @@ function App() {
               className={`header-btn settings-btn ${showSettings ? 'active' : ''}`}
             >
               <SettingsIcon size={20} />
+            </button>
+            
+            <button
+              onClick={() => setCurrentPage('about')}
+              className="header-btn demo-btn"
+            >
+              <Play size={16} />
+              <span>Video Demo</span>
             </button>
             
             {isDetecting ? (
@@ -154,17 +169,6 @@ function App() {
                 </p>
               </div>
             )}
-            <DetectionPanel
-              detectedSigns={detectedSigns}
-              currentGesture={currentGesture}
-              isDetecting={isDetecting}
-              isInitialized={isInitialized}
-              isProcessing={isProcessing}
-              detectionMode={detectionMode}
-              onModeChange={setDetectionMode}
-              settings={settings}
-              translateSign={translateSign}
-            />
           </div>
           
           {/* Sidebar */}
@@ -176,7 +180,6 @@ function App() {
               />
             )}
             
-            
             {detectionMode === 'basic' && (
               <SeaLionSettings
                 apiKey={apiKey}
@@ -184,16 +187,27 @@ function App() {
                 isInitialized={isInitialized}
               />
             )}
-            {detectionMode === 'wlasl' && (
-              <WLASLSettings
+            
+            {detectionMode === 'teachable' && (
+              <TeachableMachineSettings
                 isInitialized={isInitialized}
-                onDatasetLoad={(datasetInfo) => {
-                  console.log('WLASL Dataset loaded:', datasetInfo);
-                }}
+                isProcessing={isProcessing}
+                modelInfo={modelInfo}
+                onInitializeModel={initializeTeachableModel}
               />
             )}
-
-   
+            
+            <DetectionPanel
+              detectedSigns={detectedSigns}
+              currentGesture={currentGesture}
+              isDetecting={isDetecting}
+              isInitialized={isInitialized}
+              isProcessing={isProcessing}
+              detectionMode={detectionMode}
+              onModeChange={setDetectionMode}
+              settings={settings}
+              translateSign={translateSign}
+            />
             
             <SubtitleHistory
               subtitles={subtitles}
@@ -206,6 +220,5 @@ function App() {
     </div>
   );
 }
-
 
 export default App;

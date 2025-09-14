@@ -1,10 +1,11 @@
 import { useCallback, useState } from 'react';
 import { useMediaPipeDetection } from './useMediaPipeDetection';
 import { useBasicDetection } from './useBasicDetection';
+import { useTeachableMachine } from './useTeachableMachine';
 import { SIGN_TRANSLATIONS } from '../types';
 
 export const useSignDetection = (settings) => {
-  const [detectionMode, setDetectionMode] = useState('mediapipe'); // 'mediapipe' or 'basic'
+  const [detectionMode, setDetectionMode] = useState('mediapipe'); // 'mediapipe', 'basic', or 'teachable'
   
   // MediaPipe detection (original)
   const {
@@ -34,34 +35,66 @@ export const useSignDetection = (settings) => {
     processSignsToSentence
   } = useBasicDetection(settings);
 
+  // Teachable Machine detection (new)
+  const {
+    isInitialized: isTeachableInitialized,
+    isDetecting: isTeachableDetecting,
+    isProcessing: isTeachableProcessing,
+    currentGesture: teachableCurrentGesture,
+    detectedSigns: teachableDetectedSigns,
+    modelInfo,
+    canvasRef: teachableCanvasRef,
+    startDetection: startTeachableDetection,
+    stopDetection: stopTeachableDetection,
+    clearDetections: clearTeachableDetections,
+    initializeModel: initializeTeachableModel
+  } = useTeachableMachine(settings);
+
   // Filter signs based on confidence threshold
-  const activeDetectedSigns = detectionMode === 'basic' 
-    ? basicDetectedSigns.filter(sign => sign.confidence >= settings.minConfidence)
-    : rawDetectedSigns.filter(sign => sign.confidence >= settings.minConfidence);
+  const activeDetectedSigns = (() => {
+    switch (detectionMode) {
+      case 'basic':
+        return basicDetectedSigns.filter(sign => sign.confidence >= settings.minConfidence);
+      case 'teachable':
+        return teachableDetectedSigns.filter(sign => sign.confidence >= settings.minConfidence);
+      default:
+        return rawDetectedSigns.filter(sign => sign.confidence >= settings.minConfidence);
+    }
+  })();
 
   const startDetection = useCallback((videoElement) => {
-    if (detectionMode === 'basic') {
-      if (videoElement && isBasicInitialized) {
-        startBasicDetection(videoElement);
-      } else {
-        console.warn('Basic detection not initialized or video element is invalid.');
-      }
-    } else {
-      if (videoElement && isInitialized) {
-        startMediaPipeDetection(videoElement);
-      } else {
-        console.warn('MediaPipe detection not initialized or video element is invalid.');
-      }
+    switch (detectionMode) {
+      case 'basic':
+        if (videoElement && isBasicInitialized) {
+          startBasicDetection(videoElement);
+        }
+        break;
+      case 'teachable':
+        if (videoElement && isTeachableInitialized) {
+          startTeachableDetection(videoElement);
+        }
+        break;
+      default:
+        if (videoElement && isInitialized) {
+          startMediaPipeDetection(videoElement);
+        }
+        break;
     }
-  }, [detectionMode, startBasicDetection, startMediaPipeDetection, isBasicInitialized, isInitialized]);
+  }, [detectionMode, startBasicDetection, startMediaPipeDetection, startTeachableDetection, isBasicInitialized, isInitialized, isTeachableInitialized]);
 
   const stopDetection = useCallback(() => {
-    if (detectionMode === 'basic') {
-      stopBasicDetection();
-    } else {
-      stopMediaPipeDetection();
+    switch (detectionMode) {
+      case 'basic':
+        stopBasicDetection();
+        break;
+      case 'teachable':
+        stopTeachableDetection();
+        break;
+      default:
+        stopMediaPipeDetection();
+        break;
     }
-  }, [detectionMode, stopBasicDetection, stopMediaPipeDetection]);
+  }, [detectionMode, stopBasicDetection, stopMediaPipeDetection, stopTeachableDetection]);
 
   const translateSign = useCallback((sign) => {
     const translations = SIGN_TRANSLATIONS[settings.language];
@@ -69,28 +102,59 @@ export const useSignDetection = (settings) => {
   }, [settings.language]);
 
   const clearDetections = useCallback(() => {
-    if (detectionMode === 'basic') {
-      clearBasicDetections();
-    } else {
-      clearMediaPipeDetections();
+    switch (detectionMode) {
+      case 'basic':
+        clearBasicDetections();
+        break;
+      case 'teachable':
+        clearTeachableDetections();
+        break;
+      default:
+        clearMediaPipeDetections();
+        break;
     }
-  }, [detectionMode, clearBasicDetections, clearMediaPipeDetections]);
+  }, [detectionMode, clearBasicDetections, clearMediaPipeDetections, clearTeachableDetections]);
 
-  // Call this to process detected signs to sentences
-  // useEffect(() => {
-  //   if (detectionMode === 'basic' && basicDetectedSigns.length > 0) {
-  //     processSignsToSentence(activeDetectedSigns);
-  //   }
-  // }, [activeDetectedSigns, detectionMode, processSignsToSentence]);
+  // Get current state based on detection mode
+  const getCurrentState = () => {
+    switch (detectionMode) {
+      case 'basic':
+        return {
+          isInitialized: isBasicInitialized,
+          currentGesture: basicCurrentGesture,
+          isDetecting: isBasicDetecting,
+          isProcessing: isBasicProcessing,
+          canvasRef: basicCanvasRef
+        };
+      case 'teachable':
+        return {
+          isInitialized: isTeachableInitialized,
+          currentGesture: teachableCurrentGesture,
+          isDetecting: isTeachableDetecting,
+          isProcessing: isTeachableProcessing,
+          canvasRef: teachableCanvasRef
+        };
+      default:
+        return {
+          isInitialized: isInitialized,
+          currentGesture: currentGesture,
+          isDetecting: isDetecting,
+          isProcessing: false,
+          canvasRef: canvasRef
+        };
+    }
+  };
+
+  const currentState = getCurrentState();
 
   return {
     // Detection state
-    isInitialized: detectionMode === 'basic' ? isBasicInitialized : isInitialized,
+    isInitialized: currentState.isInitialized,
     detectedSigns: activeDetectedSigns,
-    currentGesture: detectionMode === 'basic' ? basicCurrentGesture : currentGesture,
-    isDetecting: detectionMode === 'basic' ? isBasicDetecting : isDetecting,
-    isProcessing: detectionMode === 'basic' ? isBasicProcessing : false,
-    canvasRef: detectionMode === 'basic' ? basicCanvasRef : canvasRef,
+    currentGesture: currentState.currentGesture,
+    isDetecting: currentState.isDetecting,
+    isProcessing: currentState.isProcessing,
+    canvasRef: currentState.canvasRef,
     
     // Detection controls
     startDetection,
@@ -105,6 +169,10 @@ export const useSignDetection = (settings) => {
     // Basic detection with Sea Lion AI features
     apiKey,
     updateApiKey,
-    processSignsToSentence
+    processSignsToSentence,
+    
+    // Teachable Machine features
+    modelInfo,
+    initializeTeachableModel
   };
 };
