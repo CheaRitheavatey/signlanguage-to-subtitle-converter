@@ -4,33 +4,41 @@ class TeachableMachineService {
     this.model = null;
     this.isLoaded = false;
     this.labels = [];
-    this.modelPath = '/models/'; // Path to model files in public folder
-  }
+    this.modelPath = import.meta.env.BASE_URL + '/models/';    this.tf = null;
+    console.log('Model path: ' , this.modelPath);
+    console.log('Base URL:', import.meta.env.BASE_URL);
+    console.log('Model path:', import.meta.env.BASE_URL + '/models/');
+}
 
   // Load the Teachable Machine model
-  async loadModel() {
-    try {
-      // Import TensorFlow.js
-      const tf = await import('@tensorflow/tfjs');
-      
-      // Load the model from the public/models folder
-      const modelUrl = `${this.modelPath}model.json`;
-      this.model = await tf.loadLayersModel(modelUrl);
-      
-
-      const metadataRes = await fetch(`${this.modelPath}metadata.json`);
-      const metadata = await metadataRes.json();
-      this.labels = metadata.labels || metadata.class || []
-
-      this.isLoaded = true;
-      console.log('Teachable Machine model loaded successfully');
-      return true;
-    } catch (error) {
-      console.error('Failed to load Teachable Machine model:', error);
-      this.isLoaded = false;
-      return false;
+   async loadTF() {
+    if (!this.tf) {
+      this.tf = await import('@tensorflow/tfjs');
     }
+    return this.tf;
   }
+
+  async loadModel() {
+  try {
+    const tf = await this.loadTF();
+    
+    // Load the model from the public/models folder
+    const modelUrl = `${this.modelPath}model.json`;
+    this.model = await tf.loadLayersModel(modelUrl);
+    console.log( `${this.modelPath}model.json`)
+    
+    // Load metadata - FIXED VERSION
+    await this.loadMetadata();
+    
+    this.isLoaded = true;
+    console.log('Teachable Machine model loaded successfully');
+    return true;
+  } catch (error) {
+    console.error('Failed to load Teachable Machine model:', error);
+    this.isLoaded = false;
+    return false;
+  }
+}
 
   // Preprocess image for the model
   preprocessImage(canvas) {
@@ -54,7 +62,8 @@ class TeachableMachineService {
 
   // Convert ImageData to tensor
   async imageDataToTensor(imageData) {
-    const tf = await import('@tensorflow/tfjs');
+    // const tf = await import('@tensorflow/tfjs');
+    const tf = await this.loadTF();
     
     // Convert to tensor and normalize
     const tensor = tf.browser.fromPixels(imageData)
@@ -92,36 +101,39 @@ class TeachableMachineService {
   }
 
   // Process model predictions
-  processPredictions(predictions) {
-      // Load class labels from metadata (you'll need to implement this based on your model)
-    const classLabels = this.labels.length ? this.labels : [];
-    
-    // Find the highest confidence prediction
-    let maxConfidence = 0;
-    let predictedClass = '';
-    
-    predictions.forEach((conf, i) => {
-        if (conf > maxConfidence) {
-            predictedClass = classLabels[i] || `Class_${i}`;
-        }
-        
-    });
-    // for (let i = 0; i < predictions.length; i++) {
-    //   if (predictions[i] > maxConfidence) {
-    //     maxConfidence = predictions[i];
-    //     predictedClass = classLabels[i] || `Class_${i}`;
-    //   }
-    // }
-    
-    return {
-      sign: predictedClass,
-      confidence: maxConfidence,
-      allPredictions: predictions.map((confidence, index) => ({
-        class: classLabels[index] || `Class_${index}`,
-        confidence: confidence
-      }))
-    };
+  // Process model predictions
+processPredictions(predictions) {
+  const classLabels = this.labels.length ? this.labels : [];
+  
+  // Find the highest confidence prediction
+  let maxConfidence = 0;
+  let predictedClass = '';
+  let predictedIndex = -1;
+  
+  // Use traditional for loop for Float32Array
+  for (let i = 0; i < predictions.length; i++) {
+    if (predictions[i] > maxConfidence) {
+      maxConfidence = predictions[i];
+      predictedClass = classLabels[i] || `Class_${i}`;
+      predictedIndex = i;
+    }
   }
+  
+  // Format all predictions
+  const allPredictions = [];
+  for (let i = 0; i < predictions.length; i++) {
+    allPredictions.push({
+      class: classLabels[i] || `Class_${i}`,
+      confidence: predictions[i]
+    });
+  }
+  
+  return {
+    sign: predictedClass,
+    confidence: maxConfidence,
+    allPredictions: allPredictions
+  };
+}
 
   // Get class labels from metadata
 //   getClassLabels() {
@@ -140,16 +152,82 @@ class TeachableMachineService {
 //   }
 
   // Load metadata from metadata.json
-  async loadMetadata() {
-    try {
-      const response = await fetch(`${this.modelPath}metadata.json`);
-      const metadata = await response.json();
-      return metadata;
-    } catch (error) {
-      console.error('Failed to load metadata:', error);
-      return null;
+  // Load metadata from metadata.json
+async loadMetadata() {
+  try {
+    const response = await fetch(`${this.modelPath}metadata.json`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
+    const metadata = await response.json();
+    console.log("Raw metadata:", metadata);
+    
+    // Handle different metadata formats
+    if (metadata.labels) {
+      this.labels = metadata.labels;
+    } else if (metadata.classes) {
+      this.labels = metadata.classes;
+    } else {
+      console.warn("No labels found in metadata, using default labels");
+      this.labels = ["Again","Bathroom",
+"Eat",
+"Find",
+"Fine",
+"Good",
+"Hello",
+"I_Love_You",
+"Like",
+"Me",
+"Milk",
+"No",
+"Please",
+"See_You_Later",
+"Sleep",
+"Talk",
+"Thank_You",
+"Understand",
+"Want",
+"What's_Up",
+"Who",
+"Why",
+"Yes",
+"You"];
+    }
+    
+    console.log("Loaded labels: ", this.labels);
+    return metadata;
+    
+  } catch (error) {
+    console.error('Failed to load metadata:', error);
+    // Provide fallback labels
+    this.labels = ["Again",
+"Bathroom",
+"Eat",
+"Find",
+"Fine",
+"Good",
+"Hello",
+"I_Love_You",
+"Like",
+"Me",
+"Milk",
+"No",
+"Please",
+"See_You_Later",
+"Sleep",
+"Talk",
+"Thank_You",
+"Understand",
+"Want",
+"What's_Up",
+"Who",
+"Why",
+"Yes",
+"You"]; // Add your actual class names
+    return null;
   }
+}
 
   // Check if model is ready
   isModelReady() {

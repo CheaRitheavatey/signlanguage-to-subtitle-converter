@@ -39,7 +39,7 @@ export const SubtitleHistory = ({
       
       <div className="history-list">
         {subtitles.map((subtitle, index) => (
-          <div key={subtitle.id} className="history-item">
+          <div key={`${subtitle.id || subtitle.timestamp}-${index}`} className="history-item">
             <div className="item-content">
               <p className="item-text">{subtitle.text}</p>
               <div className="item-meta">

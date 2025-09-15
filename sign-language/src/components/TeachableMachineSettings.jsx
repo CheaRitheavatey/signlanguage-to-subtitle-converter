@@ -69,7 +69,7 @@ export const TeachableMachineSettings = ({
           )}
         </button>
 
-        <div className="api-info">
+        {/* <div className="api-info">
           <h4>Model Requirements</h4>
           <ul>
             <li><strong>Location:</strong> Place your model files in <code>public/models/</code></li>
@@ -77,7 +77,7 @@ export const TeachableMachineSettings = ({
             <li><strong>Format:</strong> Google Teachable Machine exported model</li>
             <li><strong>Input:</strong> 224x224 RGB images</li>
           </ul>
-        </div>
+        </div> */}
       </div>
     </div>
   );

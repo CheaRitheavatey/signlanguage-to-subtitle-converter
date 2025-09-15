@@ -7,19 +7,20 @@ import { SettingPanel } from './components/SettingPanel';
 import { SubtitleHistory } from './components/SubtitleHistory';
 import { SeaLionSettings } from './components/SeaLionSettings';
 import { TeachableMachineSettings } from './components/TeachableMachineSettings';
-// import { AboutPage } from './components/AboutPage';
-import { useCamera } from './hooks/useCamera';
+import { useCamera } from './hooks/useCamera'; // Import from the correct location
 import { useSignDetection } from './hooks/useSignDetection';
 import { useSubtitles } from './hooks/useSubtitles';
 import { DEFAULT_SETTINGS } from './types';
+import CameraTest from './components/CameraTest';
 
 function App() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isLiveMode, setIsLiveMode] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
-  const [currentPage, setCurrentPage] = useState('main'); // 'main' or 'about'
+  const [currentPage, setCurrentPage] = useState('main');
   const videoContainerRef = useRef(null);
   
+  // Use the camera hook (make sure it's imported from './hooks/useCamera')
   const { cameraState, videoRef, startCamera, stopCamera } = useCamera();
   const { 
     isInitialized,
@@ -46,10 +47,18 @@ function App() {
     processSignsToText(detectedSigns, translateSign);
   }, [detectedSigns, processSignsToText, translateSign]);
 
+  useEffect(() => {
+  console.log('Camera state changed:', cameraState);
+  if (videoRef.current) {
+    console.log('Video element:', videoRef.current);
+    console.log('Video readyState:', videoRef.current.readyState);
+    console.log('Video srcObject:', videoRef.current.srcObject);
+  }
+}, [cameraState, videoRef]);
+
   const handleStartDetection = async () => {
     if (isLiveMode && !cameraState.isActive) {
       await startCamera();
-      // Wait a bit for camera to initialize
       setTimeout(() => {
         if (videoRef.current) {
           startDetection(videoRef.current);
@@ -78,9 +87,34 @@ function App() {
     document.documentElement.classList.toggle('dark', settings.theme === 'dark');
   }, [settings.theme]);
 
-  // Handle page navigation
-  if (currentPage === 'about') {
-    return <AboutPage onBackToMain={() => setCurrentPage('main')} />;
+  // For testing: Use CameraTest instead of the full app
+  const [testMode, setTestMode] = useState(true); // Set to true for testing camera
+
+  if (testMode) {
+    return (
+      <div className={`app ${settings.theme}`}>
+        <header className="app-header">
+          <div className="header-content">
+            <div className="header-left">
+              <div className="app-logo">
+                <Camera size={20} />
+              </div>
+              <div className="app-info">
+                <h1 className="app-title">Camera Test Mode</h1>
+                <p className="app-subtitle">Testing camera functionality</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setTestMode(false)}
+              className="header-btn"
+            >
+              Back to Main App
+            </button>
+          </div>
+        </header>
+        <CameraTest />
+      </div>
+    );
   }
 
   return (
@@ -114,11 +148,10 @@ function App() {
             </button>
             
             <button
-              onClick={() => setCurrentPage('about')}
-              className="header-btn demo-btn"
+              onClick={() => setTestMode(true)}
+              className="header-btn"
             >
-              <Play size={16} />
-              <span>Video Demo</span>
+              Test Camera
             </button>
             
             {isDetecting ? (
