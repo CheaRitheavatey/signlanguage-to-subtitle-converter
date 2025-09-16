@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, TrendingUp, Activity, Brain, Cpu, Loader, Zap } from 'lucide-react';
+import { Eye, TrendingUp, Activity, Loader, Hand } from 'lucide-react';
 
 export const DetectionPanel = ({
   detectedSigns,
@@ -7,15 +7,13 @@ export const DetectionPanel = ({
   isDetecting,
   isInitialized,
   isProcessing,
-  detectionMode,
-  onModeChange,
   settings,
   translateSign,
 }) => {
   const recentSigns = detectedSigns.slice(-5);
   
   const getStatusText = () => {
-    if (!isInitialized) return 'Initializing...';
+    if (!isInitialized) return 'Loading MediaPipe...';
     if (isProcessing) return 'Processing...';
     if (isDetecting) return 'Active';
     return 'Inactive';
@@ -25,8 +23,8 @@ export const DetectionPanel = ({
     <div className="detection-panel">
       <div className="panel-header">
         <div className="panel-title">
-          <Eye className="panel-icon" size={20} />
-          <h3>Sign Detection</h3>
+          <Hand className="panel-icon" size={20} />
+          <h3>Hand Detection</h3>
         </div>
         
         <div className="status-indicator">
@@ -38,41 +36,13 @@ export const DetectionPanel = ({
         </div>
       </div>
       
-      {/* Detection Mode Selector */}
-      <div className="detection-mode">
-        <label className="mode-label">Detection Method:</label>
-        <div className="mode-buttons">
-          <button
-            onClick={() => onModeChange('mediapipe')}
-            className={`mode-btn ${detectionMode === 'mediapipe' ? 'active' : ''}`}
-          >
-            <Cpu size={16} />
-            <span>MediaPipe</span>
-          </button>
-          <button
-            onClick={() => onModeChange('basic')}
-            className={`mode-btn ${detectionMode === 'basic' ? 'active' : ''}`}
-          >
-            <Brain size={16} />
-            <span>Basic + AI</span>
-          </button>
-          <button
-            onClick={() => onModeChange('teachable')}
-            className={`mode-btn ${detectionMode === 'teachable' ? 'active' : ''}`}
-          >
-            <Zap size={16} />
-            <span>Custom Model</span>
-          </button>
-        </div>
-      </div>
-      
       {/* Current Gesture Display */}
       {currentGesture && isDetecting && (
         <div className="current-gesture">
           <div className="gesture-info">
             <Activity className="gesture-icon" size={16} />
             <span className="gesture-name">
-              Current: {detectionMode === 'basic' || detectionMode === 'teachable' ? currentGesture.name : translateSign(currentGesture.name)}
+              Current: {translateSign(currentGesture.name)}
             </span>
             {settings.showConfidence && (
               <span className="confidence-score">
@@ -94,9 +64,9 @@ export const DetectionPanel = ({
             <div className="sign-content">
               <div className="sign-names">
                 <span className="sign-translated">
-                  {sign.isSentence ? sign.sign : (detectionMode === 'basic' || detectionMode === 'teachable' ? sign.sign : translateSign(sign.sign))}
+                  {translateSign(sign.sign)}
                 </span>
-                {!sign.isSentence && detectionMode === 'mediapipe' && sign.sign !== translateSign(sign.sign) && (
+                {sign.sign !== translateSign(sign.sign) && (
                   <span className="sign-original">
                     ({sign.sign})
                   </span>
@@ -110,11 +80,6 @@ export const DetectionPanel = ({
               <div className="sign-timestamp">
                 {new Date(sign.timestamp).toLocaleTimeString()}
               </div>
-              {sign.originalSigns && (
-                <div className="original-signs">
-                  <small>From: {sign.originalSigns.join(', ')}</small>
-                </div>
-              )}
             </div>
             
             {settings.showConfidence && (
@@ -132,12 +97,12 @@ export const DetectionPanel = ({
           <div className="empty-state">
             <Eye size={32} className="empty-icon" />
             <p className="empty-title">
-              {!isInitialized ? `Initializing ${detectionMode === 'basic' ? 'Basic Detection' : detectionMode === 'teachable' ? 'Custom Model' : 'MediaPipe'}...` : 'No signs detected yet'}
+              {!isInitialized ? 'Loading MediaPipe...' : 'No signs detected yet'}
             </p>
             <p className="empty-subtitle">
               {!isInitialized ? 
-                (detectionMode === 'basic' ? 'Basic detection ready' : detectionMode === 'teachable' ? 'Loading custom model...' : 'Please wait...') : 
-                'Start detection to see results'
+                'Please wait while MediaPipe loads...' : 
+                'Start detection to see hand gestures'
               }
             </p>
           </div>
