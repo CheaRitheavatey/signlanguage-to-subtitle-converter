@@ -8,14 +8,14 @@ export default function BackendBridge({ videoRef, running, onPrediction, capture
   const clientIdRef = useRef(null);
 
   // Create/remember client id
-  useEffect(() => {
-    let id = localStorage.getItem('clientId');
-    if (!id) {
-      id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
-      localStorage.setItem('clientId', id);
-    }
-    clientIdRef.current = id;
-  }, []);
+//   useEffect(() => {
+//     let id = localStorage.getItem('clientId');
+//     if (!id) {
+//       id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+//       localStorage.setItem('clientId', id);
+//     }
+//     clientIdRef.current = id;
+//   }, []);
 
   // create canvas used for snapshots
   useEffect(() => {
