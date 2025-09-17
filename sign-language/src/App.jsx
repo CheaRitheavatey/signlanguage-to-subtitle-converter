@@ -1,262 +1,184 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Play, Square, Camera, Settings as SettingsIcon, Sun, Moon } from 'lucide-react';
-import { VideoPlayer } from './components/VideoPlayer';
-import { SubtitleOverlay } from './components/SubtitleOverlay';
-import { DetectionPanel } from './components/DetectionPanel';
-import { SettingPanel } from './components/SettingPanel';
-import { SubtitleHistory } from './components/SubtitleHistory';
-// import { MediaPipeSettings } from './components/MediaPipeSettings';
-// import { AboutPage } from './components/AboutPage';
-import { useCamera } from './hooks/useCamera';
-import { useSignDetection } from './hooks/useSignDetection';
-import { useSubtitles } from './hooks/useSubtitles';
-import { DEFAULT_SETTINGS } from './types';
-import BackendBridge from './components/BackendBridge';
+// 
 
-function App() {
+// ASLTranslator.js
+import React, { useRef, useState, useEffect } from 'react';
+import Webcam from 'react-webcam';
 
-const [useBackend, setUseBackend] = useState(false); // toggle: false = client-side, true = backend
-const [backendDetectedSigns, setBackendDetectedSigns] = useState([]);
-const [backendCurrentGesture, setBackendCurrentGesture] = useState(null);
-const [backendRunning, setBackendRunning] = useState(false);
+const ASLTranslator = () => {
+  const webcamRef = useRef(null);
+  const [prediction, setPrediction] = useState('');
+  const [khmerTranslation, setKhmerTranslation] = useState('');
+  const [confidence, setConfidence] = useState(0);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [framesCollected, setFramesCollected] = useState(0);
+  const [clientId] = useState(() => `client_${Math.random().toString(36).substr(2, 9)}`);
+  const [status, setStatus] = useState('idle');
 
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
-  const [isLiveMode, setIsLiveMode] = useState(true);
-  const [showSettings, setShowSettings] = useState(false);
-  const [currentPage, setCurrentPage] = useState('main'); // 'main' or 'about'
-  const videoContainerRef = useRef(null);
-  
-  const { cameraState, videoRef, startCamera, stopCamera } = useCamera();
-  const { 
-    isInitialized,
-    detectedSigns, 
-    currentGesture,
-    isDetecting, 
-    isProcessing,
-    canvasRef,
-    startDetection, 
-    stopDetection, 
-    clearDetections, 
-    translateSign,
-    initializeMediaPipe
-  } = useSignDetection(settings);
-  const { subtitles, currentSubtitle, processSignsToText, exportSRT, clearSubtitles } = useSubtitles(settings);
-
-//   useEffect(() => {
-//     processSignsToText(detectedSigns, translateSign);
-//   }, [detectedSigns, processSignsToText, translateSign]);
-
-useEffect(() => {
-  const source = useBackend ? backendDetectedSigns : detectedSigns;
-  processSignsToText(source, translateSign);
-}, [useBackend, detectedSigns, backendDetectedSigns, processSignsToText, translateSign]);
-
-
-// handle backend priction
-const handleBackendPrediction = (res) => {
-  const now = Date.now();
-  const newSign = {
-    id: `${res.word}-${now}`,
-    sign: res.word,
-    confidence: res.confidence ?? 0,
-    timestamp: now,
-    category: null
-  };
-  // append and keep last N (avoid memory growth)
-  setBackendDetectedSigns(prev => {
-    const arr = [...prev, newSign];
-    return arr.slice(-200);
-  });
-  setBackendCurrentGesture({ name: res.word, confidence: res.confidence ?? 0 });
-};
-
-
-
-  const handleStartDetection = async () => {
-    if (isLiveMode && !cameraState.isActive) {
-      await startCamera();
-      // delay a bit to have frame
-      await new Promise(r => setTimeout(r,600));
-    } 
-    
-    if (useBackend) {
-        setBackendDetectedSigns([]);
-        setBackendCurrentGesture(null);
-        setBackendRunning(true);
-    }
-    else {
-        if (isLiveMode && videoRef.current) {
-      startDetection(videoRef.current);
-    } else {
-      startDetection();
-    }
-     }
+  const capture = () => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    return imageSrc;
   };
 
-  const handleStopDetection = () => {
-  if (useBackend) {
-    setBackendRunning(false);
-    if (isLiveMode) stopCamera();
-  } else {
-    stopDetection();
-    if (isLiveMode) stopCamera();
-  }
-};
+  const sendImageToBackend = async (imageData) => {
+    setIsLoading(true);
+    try {
+      // Convert base64 to blob
+      const response = await fetch(imageData);
+      const blob = await response.blob();
+      
+      // Create form data
+      const formData = new FormData();
+      formData.append('file', blob, 'frame.png');
+      
+      // Send to backend with client ID header
+      const result = await fetch('http://localhost:8000/predict', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Client-Id': clientId,
+        },
+      });
+      
+      const data = await result.json();
+      
+      if (data.error) {
+        console.error('Error:', data.error);
+        return;
+      }
+      
+      setStatus(data.status);
+      setFramesCollected(data.have);
+      
+      if (data.status === 'predicted') {
+        setPrediction(data.word);
+        setKhmerTranslation(data.khmer_translation);
+        setConfidence(data.confidence);
+      } else if (data.status === 'no_hand') {
+        setPrediction('No hand detected');
+        setKhmerTranslation('');
+        setConfidence(0);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+    setIsLoading(false);
+  };
 
-  const toggleTheme = () => {
-    const newTheme = settings.theme === 'light' ? 'dark' : 'light';
-    setSettings(prev => ({ ...prev, theme: newTheme }));
+  const resetBuffer = async () => {
+    try {
+      await fetch(`http://localhost:8000/reset/${clientId}`);
+      setFramesCollected(0);
+      setStatus('idle');
+      setPrediction('');
+      setKhmerTranslation('');
+      setConfidence(0);
+    } catch (error) {
+      console.error('Error resetting buffer:', error);
+    }
   };
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', settings.theme === 'dark');
-  }, [settings.theme]);
-
-  // Handle page navigation
-//   if (currentPage === 'about') {
-//     return <AboutPage onBackToMain={() => setCurrentPage('main')} />;
-//   }
+    let interval;
+    if (isCapturing) {
+      interval = setInterval(() => {
+        const imageData = capture();
+        if (imageData) {
+          sendImageToBackend(imageData);
+        }
+      }, 100); // Capture more frequently for sequence model
+    }
+    return () => clearInterval(interval);
+  }, [isCapturing]);
 
   return (
-    <div className={`app ${settings.theme}`}>
-      {/* Header */}
-      <header className="app-header">
-        <div className="header-content">
-          <div className="header-left">
-            <div className="app-logo">
-              <Camera size={20} />
-            </div>
-            <div className="app-info">
-              <h1 className="app-title">Sign Language Converter</h1>
-              <p className="app-subtitle">Real-time ASL detection with MediaPipe</p>
-            </div>
-          </div>
+    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+      <h1>ASL to Khmer Translator</h1>
+      <p>Client ID: {clientId}</p>
+      
+      <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: '300px' }}>
+          <Webcam
+            audio={false}
+            ref={webcamRef}
+            screenshotFormat="image/png"
+            style={{ width: '100%', borderRadius: '8px' }}
+          />
           
-          <div className="header-actions">
-            {/* testing this button */}
-            <button
-                onClick={() => setUseBackend(u => !u)}
-                className={`header-btn ${useBackend ? 'active' : ''}`}
-                >
-                {useBackend ? 'Backend' : 'Client'}
-            </button>
-
-            
-            <button
-              onClick={toggleTheme}
-              className="header-btn theme-btn"
+          <div style={{ marginTop: '10px' }}>
+            <button 
+              onClick={() => setIsCapturing(!isCapturing)}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: isCapturing ? '#ff4757' : '#2ed573',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '16px'
+              }}
             >
-              {settings.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+              {isCapturing ? 'Stop Translating' : 'Start Translating'}
             </button>
             
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className={`header-btn settings-btn ${showSettings ? 'active' : ''}`}
+            <button 
+              onClick={resetBuffer}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#ffa502',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                marginLeft: '10px'
+              }}
             >
-              <SettingsIcon size={20} />
+              Reset Buffer
             </button>
-            
-            <button
-              onClick={() => setCurrentPage('about')}
-              className="header-btn demo-btn"
-            >
-              <Play size={16} />
-              <span>Video Demo</span>
-            </button>
-            
-            {isDetecting ? (
-              <button
-                onClick={handleStopDetection}
-                className="header-btn stop-btn"
-              >
-                <Square size={16} />
-                <span>Stop Detection</span>
-              </button>
-            ) : (
-              <button
-                onClick={handleStartDetection}
-                className="header-btn start-btn"
-                disabled={!isInitialized}
-              >
-                <Play size={16} />
-                <span>{isInitialized ? 'Start Detection' : 'Loading MediaPipe...'}</span>
-              </button>
-            )}
           </div>
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="app-main">
-        <div className="main-grid">
-          {/* Video Section */}
-          <div className="video-section">
-            <div ref={videoContainerRef} className="video-wrapper">
-              <VideoPlayer
-                isLiveMode={isLiveMode}
-                onModeChange={setIsLiveMode}
-                cameraRef={videoRef}
-                canvasRef={canvasRef}
-              />
+        
+        <div style={{ flex: 1, minWidth: '300px' }}>
+          <h2>Translation Results</h2>
+          
+          <div style={{ marginBottom: '20px' }}>
+            <h3>Status:</h3>
+            <p style={{ fontSize: '18px' }}>
+              {status === 'collecting' ? `Collecting frames (${framesCollected}/48)` : 
+               status === 'predicted' ? 'Prediction ready' :
+               status === 'no_hand' ? 'No hand detected' : 'Idle'}
+            </p>
+          </div>
+          
+          {isLoading ? (
+            <p>Processing...</p>
+          ) : (
+            <>
+              <div style={{ marginBottom: '20px' }}>
+                <h3>Predicted Sign:</h3>
+                <p style={{ fontSize: '24px', fontWeight: 'bold' }}>{prediction || 'No prediction yet'}</p>
+              </div>
               
-              <SubtitleOverlay
-                currentSubtitle={currentSubtitle}
-                settings={settings}
-                containerRef={videoContainerRef}
-              />
-
-              {/* connect with python */}
-              <BackendBridge
-                videoRef={videoRef}
-                running={backendRunning}
-                onPrediction={handleBackendPrediction}
-            />
-            </div>
-            
-            {cameraState.error && (
-              <div className="error-message">
-                <p>
-                  <strong>Camera Error:</strong> {cameraState.error}
+              <div style={{ marginBottom: '20px' }}>
+                <h3>Khmer Translation:</h3>
+                <p style={{ fontSize: '32px', fontFamily: 'Khmer OS, sans-serif', fontWeight: 'bold' }}>
+                  {khmerTranslation || 'នៅពេលបន្តិច'}
                 </p>
               </div>
-            )}
-          </div>
-          
-          {/* Sidebar */}
-          <div className="sidebar">
-            {showSettings && (
-              <SettingPanel
-                settings={settings}
-                onSettingsChange={setSettings}
-              />
-            )}
-            
-            {/* <MediaPipeSettings
-              isInitialized={isInitialized}
-              isProcessing={isProcessing}
-              onInitialize={initializeMediaPipe}
-            /> */}
-            
-            <DetectionPanel
-              detectedSigns={useBackend ? backendDetectedSigns : detectedSigns}
-              currentGesture={useBackend ? backendCurrentGesture : currentGesture}
-              isDetecting={isDetecting || backendRunning}
-              isInitialized={isInitialized}
-              isProcessing={isProcessing}
-              settings={settings}
-              translateSign={translateSign}
-            />
-            
-            <SubtitleHistory
-              subtitles={useBackend ? backendDetectedSigns : subtitles}
-              onExportSRT={exportSRT}
-              onClearHistory={clearSubtitles}
-            />
-          </div>
+              
+              <div>
+                <h3>Confidence:</h3>
+                <p style={{ fontSize: '18px' }}>
+                  {confidence ? `${(confidence * 100).toFixed(2)}%` : 'N/A'}
+                </p>
+              </div>
+            </>
+          )}
         </div>
-      </main>
+      </div>
     </div>
   );
-}
+};
 
-export default App;
+export default ASLTranslator;

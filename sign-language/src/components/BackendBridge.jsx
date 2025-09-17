@@ -8,14 +8,14 @@ export default function BackendBridge({ videoRef, running, onPrediction, capture
   const clientIdRef = useRef(null);
 
   // Create/remember client id
-//   useEffect(() => {
-//     let id = localStorage.getItem('clientId');
-//     if (!id) {
-//       id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
-//       localStorage.setItem('clientId', id);
-//     }
-//     clientIdRef.current = id;
-//   }, []);
+  useEffect(() => {
+    let id = localStorage.getItem('clientId');
+    if (!id) {
+      id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+      localStorage.setItem('clientId', id);
+    }
+    clientIdRef.current = id;
+  }, []);
 
   // create canvas used for snapshots
   useEffect(() => {
@@ -64,6 +64,8 @@ export default function BackendBridge({ videoRef, running, onPrediction, capture
       } catch (err) {
         console.error('BackendBridge capture error', err);
       }
+      console.log('Captured frame at', new Date().toISOString());
+
     };
 
     // start interval
@@ -77,5 +79,5 @@ export default function BackendBridge({ videoRef, running, onPrediction, capture
     };
   }, [running, videoRef, onPrediction, captureInterval]);
 
-  return null; // no DOM
+  return null;
 }
